@@ -6,8 +6,7 @@ global.failedCount = 0;
 /**
  * 这里本来是想用Mocha的那个测试库，上周试了下，在使用async/await的时候一直报error：
  * Error: Timeout of 2000ms exceeded. For async tests and hooks, ensure "done()" is called;
- *
- * 然后我这里就重新写了describe和it这两个方法。
+ * 在网上也试了挺多方法，依然会报这个error，然后我就不用这个库了，自己重新写了describe和it这两个方法。
  *  */
 async function describe(title, callback) {
   console.log(title);
