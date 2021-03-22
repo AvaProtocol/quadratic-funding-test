@@ -4,14 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node ./test/test.js",
+    "lint": "./node_modules/eslint/bin/eslint.js test"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@polkadot/api": "^4.1.1",
     "@polkadot/util-crypto": "^6.0.5",
-    "chai": "^4.3.4"
+    "chai": "^4.3.4",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "eslint": "^7.22.0",
