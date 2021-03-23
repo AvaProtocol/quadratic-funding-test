@@ -4,7 +4,6 @@
 const { assert } = require('chai');
 const _ = require('lodash');
 
-const { describe, it } = require('./testModule');
 const {
   initAccount, initApi, createOpenGrantExtrinsics, getResponseFromEvents, readOpenGrantStorage,
 } = require('./utils');
@@ -38,12 +37,14 @@ function createProject(params) {
   });
 }
 
-async function test() {
-  await initAccount();
-  await initApi();
+describe('Method test', async () => {
+  before(async () => {
+    await initAccount();
+    await initApi();
+  });
 
-  describe('Method(createProject) Test', async () => {
-    await it('Success test', async () => {
+  describe('createProject', () => {
+    it('Success test', async () => {
       const params = {
         name: 'name',
         logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
@@ -58,7 +59,7 @@ async function test() {
       assert.strictEqual(_.isMatch(projectInfo, params), true);
     });
 
-    await it('Success test with value has some specific symbols', async () => {
+    it('Success test with value has some specific symbols', async () => {
       const params = {
         name: '\\_?*&^%$#@~!@name',
         logo: '\\_?*&^%$#@~!https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
@@ -73,7 +74,7 @@ async function test() {
       assert.strictEqual(_.isMatch(projectInfo, params), true);
     });
 
-    await it('Error test with value type is number', async () => {
+    it('Error test with value type is number', async () => {
       const params = {
         name: 123,
         logo: 123,
@@ -87,7 +88,7 @@ async function test() {
       assert.notEqual(error, null);
     });
 
-    await it('Error test with value is null', async () => {
+    it('Error test with value is null', async () => {
       const params = {
         name: null,
         logo: null,
@@ -101,7 +102,7 @@ async function test() {
       assert.notEqual(error, null);
     });
 
-    await it('Error test with value is empty string', async () => {
+    it('Error test with value is empty string', async () => {
       const params = {
         name: '',
         logo: '',
@@ -115,7 +116,7 @@ async function test() {
       assert.notEqual(error, null);
     });
 
-    await it('Error test with value is empty array', async () => {
+    it('Error test with value is empty array', async () => {
       const params = {
         name: [],
         logo: [],
@@ -129,7 +130,7 @@ async function test() {
       assert.notEqual(error, null);
     });
 
-    await it('Error test with value is empty object', async () => {
+    it('Error test with value is empty object', async () => {
       const params = {
         name: {},
         logo: {},
@@ -143,6 +144,4 @@ async function test() {
       assert.notEqual(error, null);
     });
   });
-}
-
-test();
+});
