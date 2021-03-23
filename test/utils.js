@@ -1,27 +1,32 @@
 /* eslint-disable no-restricted-syntax */
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
 const { cryptoWaitReady } = require('@polkadot/util-crypto');
+const _ = require('lodash');
 
 const config = require('./config');
 
 async function initAccount() {
-  const { phrase } = config;
-  await cryptoWaitReady();
-  const keyring = new Keyring({ type: 'sr25519' });
-  const origin = keyring.addFromUri(phrase);
+  if (_.isEmpty(global.origin)) {
+    const { phrase } = config;
+    await cryptoWaitReady();
+    const keyring = new Keyring({ type: 'sr25519' });
+    const origin = keyring.addFromUri(phrase);
 
-  global.origin = origin;
+    global.origin = origin;
+  }
 }
 
 async function initApi() {
-  const { endpoint, types } = config;
-  const wsProvider = new WsProvider(endpoint);
-  const api = await ApiPromise.create({
-    provider: wsProvider,
-    types,
-  });
+  if (_.isEmpty(global.api)) {
+    const { endpoint, types } = config;
+    const wsProvider = new WsProvider(endpoint);
+    const api = await ApiPromise.create({
+      provider: wsProvider,
+      types,
+    });
 
-  global.api = api;
+    global.api = api;
+  }
 }
 
 function getResponseFromEvents(events, queryMethod) {
@@ -46,10 +51,35 @@ function readOpenGrantStorage(method, ...args) {
   return global.api.query.openGrant[method](...args);
 }
 
+function getCurrentBlockNumber() {
+  return global.api.query.system.number();
+}
+
+function getProjectCount() {
+  return readOpenGrantStorage('projectCount');
+}
+
+function getProjectInfo(projectIndex) {
+  return readOpenGrantStorage('projects', projectIndex);
+}
+
+function getGrantRoundCount() {
+  return readOpenGrantStorage('grantRoundCount');
+}
+
+function getGrantRoundInfo(grantRoundIndex) {
+  return readOpenGrantStorage('grantRounds', grantRoundIndex);
+}
+
 module.exports = {
   initAccount,
   initApi,
   getResponseFromEvents,
   createOpenGrantExtrinsics,
   readOpenGrantStorage,
+  getCurrentBlockNumber,
+  getProjectCount,
+  getProjectInfo,
+  getGrantRoundCount,
+  getGrantRoundInfo,
 };

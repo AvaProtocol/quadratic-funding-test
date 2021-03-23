@@ -444,6 +444,11 @@ base64-js@^1.5.1:
   resolved "https://registry.npm.taobao.org/base64-js/download/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha1-GxtEAWClv3rUC2UPCVljSBkDkwo=
 
+bignumber.js@^9.0.1:
+  version "9.0.1"
+  resolved "https://registry.npm.taobao.org/bignumber.js/download/bignumber.js-9.0.1.tgz#8d7ba124c882bfd8e43260c67475518d0689e4e5"
+  integrity sha1-jXuhJMiCv9jkMmDGdHVRjQaJ5OU=
+
 binary-extensions@^2.0.0:
   version "2.2.0"
   resolved "https://registry.npm.taobao.org/binary-extensions/download/binary-extensions-2.2.0.tgz?cache=0&sync_timestamp=1610299740610&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fbinary-extensions%2Fdownload%2Fbinary-extensions-2.2.0.tgz#75f502eeaf9ffde42fc98829645be4ea76bd9e2d"
