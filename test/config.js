@@ -34,4 +34,11 @@ module.exports = {
       owner: 'AccountId',
     },
   },
+  rpc: {
+    getProjects: {
+      description: 'getProjects',
+      params: [],
+      type: 'Vec<Project>',
+    },
+  },
 };
