@@ -5,7 +5,7 @@ const BigNumber = require('bignumber.js');
 
 const {
   initAccount, initApi, createOpenGrantExtrinsics, getResponseFromEvents,
-  getProjectCount, getGrantRoundInfo, getGrantRoundCount,
+  getProjectCount, getGrantRoundCount,
 } = require('../utils');
 const EventTypes = require('../eventTypes');
 const Methods = require('../methods');
@@ -13,10 +13,10 @@ const Methods = require('../methods');
 function cancel(params) {
   return new Promise(async (resolve, reject) => {
     const {
-      start, end, matchingFund, projectIndexes,
+      roundIndex, projectIndex,
     } = params;
 
-    const round = createOpenGrantExtrinsics(Methods.cancel, start, end, matchingFund, projectIndexes);
+    const round = createOpenGrantExtrinsics(Methods.cancel, roundIndex, projectIndex);
     const unsub = await round.signAndSend(global.origin, async ({ events = [], status }) => {
       if (status.isFinalized) {
         unsub();
@@ -24,10 +24,9 @@ function cancel(params) {
         if (error) {
           reject(error);
         } else if (response) {
-          const [roundIndex, projectIndex] = response;
           resolve({
-            roundIndex: Number(roundIndex),
-            projectIndex: Number(projectIndex),
+            roundIndex: Number(response[0]),
+            projectIndex: Number(response[1]),
           });
         } else {
           reject(new Error(`${Methods.cancel} method has no response event`));
