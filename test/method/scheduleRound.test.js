@@ -17,7 +17,7 @@ function scheduleRound(params) {
     } = params;
 
     const round = createOpenGrantExtrinsics(Methods.scheduleRound, start, end, matchingFund, projectIndexes);
-    const unsub = await round.signAndSend(global.origin, async ({ events = [], status }) => {
+    const unsub = await round.signAndSend(global.sudoOrigin, async ({ events = [], status }) => {
       if (status.isFinalized) {
         unsub();
         const { response, error } = getResponseFromEvents(events, EventTypes.GrantRoundCreated);

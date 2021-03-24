@@ -6,13 +6,17 @@ const _ = require('lodash');
 const config = require('./config');
 
 async function initAccount() {
-  if (_.isEmpty(global.origin)) {
-    const { phrase } = config;
+  if (_.isEmpty(global.projectOrigin)) {
+    const { projectPhrase, userPhrase, sudoPhrase } = config;
     await cryptoWaitReady();
     const keyring = new Keyring({ type: 'sr25519' });
-    const origin = keyring.addFromUri(phrase);
+    const projectOrigin = keyring.addFromUri(projectPhrase);
+    const userOrigin = keyring.addFromUri(userPhrase);
+    const sudoOrigin = keyring.addFromUri(sudoPhrase);
 
-    global.origin = origin;
+    global.projectOrigin = projectOrigin;
+    global.userOrigin = userOrigin;
+    global.sudoOrigin = sudoOrigin;
   }
 }
 

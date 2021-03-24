@@ -16,7 +16,7 @@ function createProject(params) {
       name, logo, description, website,
     } = params;
     const create = createOpenGrantExtrinsics(Methods.createProject, name, logo, description, website);
-    const unsub = await create.signAndSend(global.origin, async ({ events = [], status }) => {
+    const unsub = await create.signAndSend(global.projectOriginal, async ({ events = [], status }) => {
       if (status.isFinalized) {
         unsub();
         const { response, error } = getResponseFromEvents(events, EventTypes.ProjectCreated);

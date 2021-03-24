@@ -10,17 +10,17 @@ const {
 const EventTypes = require('../eventTypes');
 const Methods = require('../methods');
 
-function cancel(params) {
+function allowWithdraw(params) {
   return new Promise(async (resolve, reject) => {
     const {
       roundIndex, projectIndex,
     } = params;
 
-    const round = createOpenGrantExtrinsics(Methods.cancel, roundIndex, projectIndex);
+    const round = createOpenGrantExtrinsics(Methods.allowWithdraw, roundIndex, projectIndex);
     const unsub = await round.signAndSend(global.sudoOrigin, async ({ events = [], status }) => {
       if (status.isFinalized) {
         unsub();
-        const { response, error } = getResponseFromEvents(events, EventTypes.GrantCanceled);
+        const { response, error } = getResponseFromEvents(events, EventTypes.GrantAllowedWithdraw);
         if (error) {
           reject(error);
         } else if (response) {
@@ -29,11 +29,11 @@ function cancel(params) {
             projectIndex: Number(response[1]),
           });
         } else {
-          reject(new Error(`${Methods.cancel} method has no response event`));
+          reject(new Error(`${Methods.allowWithdraw} method has no response event`));
         }
       } else if (status.type === 'Invalid') {
         unsub();
-        reject(new Error(`${Methods.cancel} is invalid`));
+        reject(new Error(`${Methods.allowWithdraw} is invalid`));
       }
     }).catch((error) => {
       reject(error);
@@ -41,7 +41,7 @@ function cancel(params) {
   });
 }
 
-describe('Method Test - cancel', async () => {
+describe('Method Test - allowWithdraw', async () => {
   before(async () => {
     await initAccount();
     await initApi();
@@ -62,11 +62,11 @@ describe('Method Test - cancel', async () => {
     };
 
     let error = null;
-    const cancelInfo = await cancel(params).catch((err) => {
+    const allowWithdrawInfo = await allowWithdraw(params).catch((err) => {
       error = err.message;
     });
     assert.strictEqual(error, null);
-    assert.strictEqual(_.isMatch(cancelInfo, params), true);
+    assert.strictEqual(_.isMatch(allowWithdrawInfo, params), true);
   });
 
   it('Error case with invalid round index (invalid array index)', async () => {
@@ -76,7 +76,7 @@ describe('Method Test - cancel', async () => {
     };
 
     let error = null;
-    await cancel(params).catch((err) => {
+    await allowWithdraw(params).catch((err) => {
       error = err.message;
     });
     assert.notEqual(error, null);
@@ -89,7 +89,7 @@ describe('Method Test - cancel', async () => {
     };
 
     let error = null;
-    await cancel(params).catch((err) => {
+    await allowWithdraw(params).catch((err) => {
       error = err.message;
     });
     assert.notEqual(error, null);
@@ -102,7 +102,7 @@ describe('Method Test - cancel', async () => {
     };
 
     let error = null;
-    await cancel(params).catch((err) => {
+    await allowWithdraw(params).catch((err) => {
       error = err.message;
     });
     assert.notEqual(error, null);
@@ -115,7 +115,7 @@ describe('Method Test - cancel', async () => {
     };
 
     let error = null;
-    await cancel(params).catch((err) => {
+    await allowWithdraw(params).catch((err) => {
       error = err.message;
     });
     assert.notEqual(error, null);
@@ -128,7 +128,7 @@ describe('Method Test - cancel', async () => {
     };
 
     let error = null;
-    await cancel(params).catch((err) => {
+    await allowWithdraw(params).catch((err) => {
       error = err.message;
     });
     assert.notEqual(error, null);
@@ -141,7 +141,7 @@ describe('Method Test - cancel', async () => {
     };
 
     let error = null;
-    await cancel(params).catch((err) => {
+    await allowWithdraw(params).catch((err) => {
       error = err.message;
     });
     assert.notEqual(error, null);
@@ -154,7 +154,7 @@ describe('Method Test - cancel', async () => {
     };
 
     let error = null;
-    await cancel(params).catch((err) => {
+    await allowWithdraw(params).catch((err) => {
       error = err.message;
     });
     assert.notEqual(error, null);
@@ -167,7 +167,7 @@ describe('Method Test - cancel', async () => {
     };
 
     let error = null;
-    await cancel(params).catch((err) => {
+    await allowWithdraw(params).catch((err) => {
       error = err.message;
     });
     assert.notEqual(error, null);
