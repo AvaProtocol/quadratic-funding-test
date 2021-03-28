@@ -3,6 +3,7 @@ const EventTypes = {
   GrantRoundCreated: 'GrantRoundCreated',
   ContributeSucceed: 'ContributeSucceed',
   GrantCanceled: 'GrantCanceled',
+  RoundCanceled: 'RoundCanceled',
   GrantWithdrawn: 'GrantWithdrawn',
   GrantAllowedWithdraw: 'GrantAllowedWithdraw',
 };

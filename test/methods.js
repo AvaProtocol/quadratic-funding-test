@@ -5,6 +5,7 @@ const Methods = {
   allowWithdraw: 'allowWithdraw',
   withdraw: 'withdraw',
   cancel: 'cancel',
+  cancelRound: 'cancelRound',
 };
 
 module.exports = Methods;

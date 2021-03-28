@@ -6,17 +6,12 @@ const _ = require('lodash');
 const config = require('./config');
 
 async function initAccount() {
-  if (_.isEmpty(global.projectOrigin)) {
-    const { projectPhrase, userPhrase, sudoPhrase } = config;
+  if (_.isEmpty(global.origin)) {
+    const { phrase } = config;
     await cryptoWaitReady();
     const keyring = new Keyring({ type: 'sr25519' });
-    const projectOrigin = keyring.addFromUri(projectPhrase);
-    const userOrigin = keyring.addFromUri(userPhrase);
-    const sudoOrigin = keyring.addFromUri(sudoPhrase);
-
-    global.projectOrigin = projectOrigin;
-    global.userOrigin = userOrigin;
-    global.sudoOrigin = sudoOrigin;
+    const origin = keyring.addFromUri(phrase);
+    global.origin = origin;
   }
 }
 
@@ -36,12 +31,13 @@ async function initApi() {
 function getResponseFromEvents(events, queryMethod) {
   let response = null;
   let error = null;
-  events.forEach(({ event: { data, method, section } }) => {
-    if (section === 'system' && method === 'ExtrinsicFailed') {
+  events.forEach(({ phase, event: { data, method, section } }) => {
+    console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+    if (section.toString() === 'system' && method.toString() === 'ExtrinsicFailed') {
       error = new Error('ExtrinsicFailed');
     }
-    if (section === 'openGrant' && method === queryMethod) {
-      response = data.toHuman();
+    if (section.toString() === 'openGrant' && method.toString() === queryMethod) {
+      response = data;
     }
   });
   return { response, error };
@@ -55,8 +51,9 @@ function readOpenGrantStorage(method, ...args) {
   return global.api.query.openGrant[method](...args);
 }
 
-function getCurrentBlockNumber() {
-  return global.api.query.system.number();
+async function getCurrentBlockNumber() {
+  const blockNumber = await global.api.query.system.number();
+  return blockNumber.toNumber();
 }
 
 function getProjectCount() {

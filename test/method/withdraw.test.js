@@ -4,44 +4,10 @@ const _ = require('lodash');
 const BigNumber = require('bignumber.js');
 
 const {
-  initAccount, initApi, createOpenGrantExtrinsics, getResponseFromEvents,
+  initAccount, initApi,
   getProjectCount, getGrantRoundCount,
 } = require('../utils');
-const EventTypes = require('../eventTypes');
-const Methods = require('../methods');
-
-function withdraw(params) {
-  return new Promise(async (resolve, reject) => {
-    const {
-      roundIndex, projectIndex,
-    } = params;
-
-    const round = createOpenGrantExtrinsics(Methods.withdraw, roundIndex, projectIndex);
-    const unsub = await round.signAndSend(global.projectOrigin, async ({ events = [], status }) => {
-      if (status.isFinalized) {
-        unsub();
-        const { response, error } = getResponseFromEvents(events, EventTypes.GrantWithdrawn);
-        if (error) {
-          reject(error);
-        } else if (response) {
-          resolve({
-            roundIndex: Number(response[0]),
-            projectIndex: Number(response[1]),
-            matchingFund: Number(response[2]),
-            contributionFund: Number(response[3]),
-          });
-        } else {
-          reject(new Error(`${Methods.withdraw} method has no response event`));
-        }
-      } else if (status.type === 'Invalid') {
-        unsub();
-        reject(new Error(`${Methods.withdraw} is invalid`));
-      }
-    }).catch((error) => {
-      reject(error);
-    });
-  });
-}
+const { withdraw } = require('./method');
 
 describe('Method Test - withdraw', async () => {
   before(async () => {
