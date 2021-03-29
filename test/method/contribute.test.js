@@ -3,137 +3,138 @@ const { assert } = require('chai');
 const _ = require('lodash');
 const BigNumber = require('bignumber.js');
 
+const OpenGrant = require('../OpenGrant');
+const { matchingFund, roundDuration, value } = require('../constant');
 const {
-  initAccount, initApi, getProjectCount,
+  createProject, scheduleRound, contribute, cleanRound,
 } = require('../utils');
-const { contribute } = require('./method');
 
-describe('Method Test - withdraw', async () => {
+const shouldPass = async (openGrant, params) => {
+  const { error, info } = await contribute(openGrant, params);
+  assert.strictEqual(error, null, 'Contribute should not catch an error');
+  assert.strictEqual(_.isMatch(info, params), true, 'Contribute info should contain the params');
+};
+
+const shouldFail = async (openGrant, params) => {
+  const { error, info } = await contribute(openGrant, params);
+  assert.notEqual(error, null, 'Contribute should catch an error');
+  assert.strictEqual(_.isEmpty(info), true, 'Contribute info should be empty');
+};
+
+describe('Method Test - contribute', async () => {
+  const openGrant = new OpenGrant();
+  let projectIndex = null;
+
   before(async () => {
-    await initAccount();
-    await initApi();
-  });
+    await openGrant.init();
 
-  beforeEach(async () => {
-    const projectCount = await getProjectCount();
-    global.projectCount = projectCount.toNumber();
-  });
-
-  it('Success case', async () => {
-    const params = {
-      projectIndex: 0,
-      value: 100,
-    };
-
-    let error = null;
-    const contributeInfo = await contribute(params).catch((err) => {
-      error = err.message;
+    // Need create project first before schedule round
+    const { index, error } = await createProject(openGrant, {
+      name: 'name',
+      logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
+      description: 'description',
+      website: 'https://oak.tech/',
     });
     assert.strictEqual(error, null);
-    assert.strictEqual(_.isMatch(contributeInfo, params), true);
+    projectIndex = index;
+
+    await cleanRound(openGrant);
+    const currentBlockNumber = await openGrant.getCurrentBlockNumber();
+    const startBlockNumber = currentBlockNumber + 10;
+    const response = await scheduleRound(openGrant, {
+      start: startBlockNumber,
+      end: startBlockNumber + roundDuration * 2, // Double roundDuration ensure run all input cases in this round
+      matchingFund,
+      projectIndexes: [projectIndex],
+    });
+    assert.strictEqual(response.error, null);
+
+    // Wait for this round start
+    await openGrant.waitForBlockNumber(startBlockNumber);
   });
 
-  it('Error case with value = 0', async () => {
+  after(async () => {
+    await cleanRound(openGrant);
+  });
+
+  it('Input with correct params should pass', async () => {
     const params = {
-      projectIndex: 0,
+      projectIndex,
+      value,
+    };
+
+    await shouldPass(openGrant, params);
+  });
+
+  it('Input value as 0 should fail', async () => {
+    const params = {
+      projectIndex,
       value: 0,
     };
 
-    let error = null;
-    await contribute(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value < 0', async () => {
+  it('Input value < 0 should fail', async () => {
     const params = {
-      projectIndex: 0,
+      projectIndex,
       value: -100,
     };
 
-    let error = null;
-    await contribute(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with invalid project index (invalid array index)', async () => {
+  it('Input projectIndex as invalid array index should fail', async () => {
     const params = {
       projectIndex: -1,
-      value: 100,
+      value,
     };
 
-    let error = null;
-    await contribute(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with invalid project index (project is not exsit)', async () => {
+  it('Input projectIndex as a not exsit project index should fail', async () => {
     const params = {
-      projectIndex: global.projectCount + 10,
-      value: 100,
+      projectIndex: projectIndex + 10,
+      value,
     };
 
-    let error = null;
-    await contribute(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value is null', async () => {
+  it('Input as null should fail', async () => {
     const params = {
       projectIndex: null,
       value: null,
     };
 
-    let error = null;
-    await contribute(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value type is empty string', async () => {
+  it('Input as empty string should fail', async () => {
     const params = {
       projectIndex: '',
       value: '',
     };
 
-    let error = null;
-    await contribute(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value type is array', async () => {
+  it('Input with array type should fail', async () => {
     const params = {
       projectIndex: [0],
       value: [100],
     };
 
-    let error = null;
-    await contribute(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value type is BigNumber', async () => {
+  it('Input with BigNumber type should fail', async () => {
     const params = {
       projectIndex: BigNumber(0),
       value: BigNumber(100),
     };
 
-    let error = null;
-    await contribute(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 });

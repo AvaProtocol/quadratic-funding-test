@@ -1,113 +1,94 @@
 const { assert } = require('chai');
 const _ = require('lodash');
 
-const {
-  initAccount, initApi,
-} = require('../utils');
-const { createProject } = require('./method');
+const OpenGrant = require('../OpenGrant');
+const { createProject } = require('../utils');
+
+const shouldPass = async (openGrant, params) => {
+  const { error, info } = await createProject(openGrant, params);
+  assert.strictEqual(error, null, 'Should not catch an error');
+  assert.strictEqual(_.isMatch(info, params), true, 'Project info should contain the params');
+};
+
+const shouldFail = async (openGrant, params) => {
+  const { error, info } = await createProject(openGrant, params);
+  assert.notEqual(error, null, 'Should catch an error');
+  assert.strictEqual(_.isEmpty(info), true, 'Project info should be empty');
+};
 
 describe('Method Test - create_project', async () => {
+  const openGrant = new OpenGrant();
   before(async () => {
-    await initAccount();
-    await initApi();
+    await openGrant.init();
   });
-  it('Success case', async () => {
+
+  it('Input with non-empty string should pass', async () => {
     const params = {
       name: 'name',
       logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
       description: 'description',
       website: 'https://oak.tech/',
     };
-    let error = null;
-    const projectInfo = await createProject(params).catch((err) => {
-      error = err.message;
-    });
-    assert.strictEqual(error, null);
-    assert.strictEqual(_.isMatch(projectInfo, params), true);
+    await shouldPass(openGrant, params);
   });
 
-  it('Success case with value has some specific symbols', async () => {
+  it('Input with specific symbols should pass', async () => {
     const params = {
       name: '\\_?*&^%$#@~!@name',
       logo: '\\_?*&^%$#@~!https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
       description: '\\_?*&^%$#@~!description',
       website: '\\_?*&^%$#@~!https://oak.tech/',
     };
-    let error = null;
-    const projectInfo = await createProject(params).catch((err) => {
-      error = err.message;
-    });
-    assert.strictEqual(error, null);
-    assert.strictEqual(_.isMatch(projectInfo, params), true);
+    await shouldPass(openGrant, params);
   });
 
-  it('Error case with value type is number', async () => {
+  it('Input with number type should fail', async () => {
     const params = {
       name: 123,
       logo: 123,
       description: 123,
       website: 123,
     };
-    let error = null;
-    await createProject(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value is null', async () => {
+  it('Input as null should fail', async () => {
     const params = {
       name: null,
       logo: null,
       description: null,
       website: null,
     };
-    let error = null;
-    await createProject(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value is empty string', async () => {
+  it('Input as empty string should fail', async () => {
     const params = {
       name: '',
       logo: '',
       description: '',
       website: '',
     };
-    let error = null;
-    await createProject(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value is empty array', async () => {
+  it('Input as empty array should fail', async () => {
     const params = {
       name: [],
       logo: [],
       description: [],
       website: [],
     };
-    let error = null;
-    await createProject(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value is empty object', async () => {
+  it('Input as empty object should fail', async () => {
     const params = {
       name: {},
       logo: {},
       description: {},
       website: {},
     };
-    let error = null;
-    await createProject(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 });

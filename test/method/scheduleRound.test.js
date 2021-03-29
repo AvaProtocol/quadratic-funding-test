@@ -1,165 +1,159 @@
+/* eslint-disable max-len */
 const { assert } = require('chai');
-const _ = require('lodash');
 const BigNumber = require('bignumber.js');
+const _ = require('lodash');
 
+const OpenGrant = require('../OpenGrant');
+const { matchingFund, roundDuration } = require('../constant');
 const {
-  initAccount, initApi,
-  getCurrentBlockNumber, getProjectCount,
+  createProject, scheduleRound, cleanRound,
 } = require('../utils');
-const { scheduleRound } = require('./method');
+
+const shouldPass = async (openGrant, params) => {
+  const { error, info } = await scheduleRound(openGrant, params);
+  assert.strictEqual(error, null, 'Schedule round should not catch an error');
+  assert.strictEqual(_.isEmpty(info), false, 'Round info should not be empty');
+
+  const roundCount = await openGrant.getGrantRoundCount();
+  assert.strictEqual(roundCount, 1, 'After pass case, grant round count should be 1');
+};
+
+const shouldFail = async (openGrant, params) => {
+  const { error, info } = await scheduleRound(openGrant, params);
+  assert.notEqual(error, null, 'Schedule round should catch an error');
+  assert.strictEqual(_.isEmpty(info), true, 'Round info should be empty');
+
+  const roundCount = await openGrant.getGrantRoundCount();
+  assert.strictEqual(roundCount, 0, 'After fail case, grant round count should be 0');
+};
 
 describe('Method Test - schedule_round', async () => {
+  const openGrant = new OpenGrant();
+  let projectIndex = null;
+  let currentBlockNumber = null;
+  let startBlockNumber = null;
+
   before(async () => {
-    await initAccount();
-    await initApi();
+    await openGrant.init();
+
+    // Need create project first before schedule round
+    const { index, error } = await createProject(openGrant, {
+      name: 'name',
+      logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
+      description: 'description',
+      website: 'https://oak.tech/',
+    });
+    assert.strictEqual(error, null);
+    projectIndex = index;
   });
 
   beforeEach(async () => {
-    const blockNumber = await getCurrentBlockNumber();
-    global.blockNumber = blockNumber.toNumber();
-
-    const projectCount = await getProjectCount();
-    global.projectCount = projectCount.toNumber();
+    await cleanRound(openGrant);
+    currentBlockNumber = await openGrant.getCurrentBlockNumber();
+    startBlockNumber = currentBlockNumber + 1000;
   });
 
-  it('Success case', async () => {
+  afterEach(async () => {
+    await cleanRound(openGrant);
+  });
+
+  it('Input with correct params should pass', async () => {
     const params = {
-      start: global.blockNumber + 100,
-      end: global.blockNumber + 100000,
-      matchingFund: 100,
-      projectIndexes: [0],
+      start: startBlockNumber,
+      end: startBlockNumber + roundDuration,
+      matchingFund,
+      projectIndexes: [projectIndex],
     };
 
-    let error = null;
-    const roundInfo = await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.strictEqual(error, null);
-    // assert.strictEqual(_.isMatch(roundInfo, params), true);
-    assert.notEqual(roundInfo, null);
+    await shouldPass(openGrant, params);
   });
 
-  it('Success case with matchingFound = 0', async () => {
+  it('Input matchingFund as 0 should pass', async () => {
     const params = {
-      start: global.blockNumber + 100,
-      end: global.blockNumber + 100000,
+      start: startBlockNumber,
+      end: startBlockNumber + roundDuration,
       matchingFund: 0,
-      projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      projectIndexes: [projectIndex],
     };
 
-    let error = null;
-    const roundInfo = await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.strictEqual(error, null);
-    // assert.strictEqual(_.isMatch(roundInfo, params), true);
-    assert.notEqual(roundInfo, null);
+    await shouldPass(openGrant, params);
   });
 
-  it('Error case with start > end', async () => {
+  it('Input start > end should fail', async () => {
     const params = {
-      start: global.blockNumber + 10000,
-      end: global.blockNumber + 100,
-      matchingFund: 100,
-      projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      start: startBlockNumber + roundDuration + 10,
+      end: startBlockNumber + roundDuration,
+      matchingFund,
+      projectIndexes: [projectIndex],
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with start/end/matchingFound < 0', async () => {
+  it('Input as < 0 should fail', async () => {
     const params = {
       start: -100,
       end: -1,
-      matchingFund: -100,
-      projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      matchingFund: -matchingFund,
+      projectIndexes: [projectIndex],
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with start/end = 0', async () => {
+  it('Input start/end as 0 should fail', async () => {
     const params = {
       start: 0,
       end: 0,
-      matchingFund: 100,
-      projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      matchingFund,
+      projectIndexes: [projectIndex],
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with start/end < current blockNumber', async () => {
+  it('Input start/end < currentBlockNumber shoud fail', async () => {
     const params = {
-      start: global.blockNumber - 10000,
-      end: global.blockNumber - 100,
-      matchingFund: 100,
-      projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      start: currentBlockNumber - 100 - roundDuration,
+      end: currentBlockNumber - 100,
+      matchingFund,
+      projectIndexes: [projectIndex],
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with invalid project index (invalid array index)', async () => {
+  it('Input projectIndexes contains invalid array index should fail', async () => {
     const params = {
-      start: global.blockNumber + 100,
-      end: global.blockNumber + 100000,
-      matchingFund: 100,
-      projectIndexes: [-1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      start: startBlockNumber,
+      end: startBlockNumber + roundDuration,
+      matchingFund,
+      projectIndexes: [-1, projectIndex],
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with invalid project index (project index is not exsit in storage)', async () => {
-    const overflowIndex = global.projectCount + 10;
+  it('Input projectIndexes contains not exsit project index should fail', async () => {
     const params = {
-      start: global.blockNumber + 100,
-      end: global.blockNumber + 100000,
-      matchingFund: 100,
-      projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, overflowIndex],
+      start: startBlockNumber,
+      end: startBlockNumber + roundDuration,
+      matchingFund,
+      projectIndexes: [projectIndex + 10],
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with projectIndexed is empty', async () => {
+  it('Input projectIndexes as empty should fail', async () => {
     const params = {
-      start: global.blockNumber + 100,
-      end: global.blockNumber + 100000,
-      matchingFund: 100,
+      start: startBlockNumber,
+      end: startBlockNumber + roundDuration,
+      matchingFund,
       projectIndexes: [],
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
   // // TODO: Need get per round max projects length (Storage has no such maxLength filed)
@@ -178,7 +172,7 @@ describe('Method Test - schedule_round', async () => {
   //   assert.notEqual(error, null);
   // });
 
-  it('Error case with value = null', async () => {
+  it('Input as null should fail', async () => {
     const params = {
       start: null,
       end: null,
@@ -186,29 +180,21 @@ describe('Method Test - schedule_round', async () => {
       projectIndexes: null,
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value type is string', async () => {
+  it('Input with string type should fail', async () => {
     const params = {
-      start: `${global.blockNumber + 100}`,
-      end: `${global.blockNumber + 100000}`,
-      matchingFund: '100',
-      projectIndexes: '1, 2, 3, 4, 5, 6, 7, 8, 9, 10',
+      start: `${startBlockNumber}`,
+      end: `${startBlockNumber + roundDuration}`,
+      matchingFund: `${matchingFund}`,
+      projectIndexes: `${projectIndex}`,
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value is empty string', async () => {
+  it('Input as empty string should fail', async () => {
     const params = {
       start: '',
       end: '',
@@ -216,25 +202,32 @@ describe('Method Test - schedule_round', async () => {
       projectIndexes: '',
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
   });
 
-  it('Error case with value type is BigNumber', async () => {
+  it('Input with BigNumber type should fail', async () => {
     const params = {
-      start: BigNumber(global.blockNumber + 100),
-      end: BigNumber(global.blockNumber + 100000),
-      matchingFund: BigNumber(100),
-      projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      start: BigNumber(startBlockNumber),
+      end: BigNumber(startBlockNumber + roundDuration),
+      matchingFund: BigNumber(matchingFund),
+      projectIndexes: [BigNumber(projectIndex)],
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err.message;
-    });
-    assert.notEqual(error, null);
+    await shouldFail(openGrant, params);
+  });
+
+  it('Logic with schedule round when there is already another scheduled round should fail', async () => {
+    const params = {
+      start: startBlockNumber,
+      end: startBlockNumber + roundDuration,
+      matchingFund,
+      projectIndexes: [projectIndex],
+    };
+
+    // Schedule round A should pass
+    await shouldPass(openGrant, params);
+
+    // Schedule round B should fail
+    await shouldFail(openGrant, params);
   });
 });

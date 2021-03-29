@@ -1,86 +1,101 @@
-/* eslint-disable no-restricted-syntax */
-const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
-const { cryptoWaitReady } = require('@polkadot/util-crypto');
+/* eslint-disable max-len */
 const _ = require('lodash');
 
-const config = require('./config');
+const OpenGrant = require('./OpenGrant');
+const ExtrinsicsTypes = require('./extrinsicsTypes');
+const { confirmBlocks } = require('./constant');
 
-async function initAccount() {
-  if (_.isEmpty(global.origin)) {
-    const { phrase } = config;
-    await cryptoWaitReady();
-    const keyring = new Keyring({ type: 'sr25519' });
-    const origin = keyring.addFromUri(phrase);
-    global.origin = origin;
-  }
-}
-
-async function initApi() {
-  if (_.isEmpty(global.api)) {
-    const { endpoint, types } = config;
-    const wsProvider = new WsProvider(endpoint);
-    const api = await ApiPromise.create({
-      provider: wsProvider,
-      types,
-    });
-
-    global.api = api;
-  }
-}
-
-function getResponseFromEvents(events, queryMethod) {
-  let response = null;
+const createProject = async (openGrant, params) => {
   let error = null;
-  events.forEach(({ phase, event: { data, method, section } }) => {
-    console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-    if (section.toString() === 'system' && method.toString() === 'ExtrinsicFailed') {
-      error = new Error('ExtrinsicFailed');
-    }
-    if (section.toString() === 'openGrant' && method.toString() === queryMethod) {
-      response = data;
-    }
+  let info = null;
+  let index = null;
+  const extrinsic = await openGrant.createProject(params);
+  const response = await OpenGrant.signAndSubscribeExtrinsic(
+    extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.createProject,
+  ).catch((err) => {
+    error = err.message;
   });
-  return { response, error };
-}
+  if (!_.isEmpty(response)) {
+    index = response[0].toNumber();
+    info = await openGrant.getProjectInfo(index);
+  }
+  return { info, error, index };
+};
 
-function createOpenGrantExtrinsics(method, ...args) {
-  return global.api.tx.openGrant[method](...args);
-}
+const scheduleRound = async (openGrant, params) => {
+  let error = null;
+  let info = null;
+  let index = null;
+  const extrinsic = await openGrant.scheduleRound(params);
+  const response = await OpenGrant.signAndSubscribeExtrinsic(
+    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.scheduleRound,
+  ).catch((err) => {
+    error = err.message;
+  });
+  if (!_.isEmpty(response)) {
+    index = response[0].toNumber();
+    info = await openGrant.getGrantRoundInfo(index);
+  }
+  return { info, error, index };
+};
 
-function readOpenGrantStorage(method, ...args) {
-  return global.api.query.openGrant[method](...args);
-}
+const cancelRound = async (openGrant) => {
+  let error = null;
+  const extrinsic = await openGrant.cancelRound();
+  const response = await OpenGrant.signAndSubscribeExtrinsic(
+    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancelRound,
+  ).catch((err) => {
+    error = err.message;
+  });
+  return { error, roundCanceled: !_.isEmpty(response) };
+};
 
-async function getCurrentBlockNumber() {
-  const blockNumber = await global.api.query.system.number();
-  return blockNumber.toNumber();
-}
+const contribute = async (openGrant, params) => {
+  let error = null;
+  const extrinsic = await openGrant.contribute(params);
+  const response = await OpenGrant.signAndSubscribeExtrinsic(
+    extrinsic, openGrant.userOrigin, ExtrinsicsTypes.contribute,
+  ).catch((err) => {
+    error = err.message;
+  });
+  return {
+    info: {
+      contributer: response[0].toHuman(),
+      projectIndex: response[1].toNumber(),
+      value: response[2].toNumber(),
+      block: response[3].toNumber(),
+    },
+    error,
+  };
+};
 
-function getProjectCount() {
-  return readOpenGrantStorage('projectCount');
-}
+const cleanRound = async (openGrant) => {
+  const currentBlockNumber = await openGrant.getCurrentBlockNumber();
+  const roundCount = await openGrant.getGrantRoundCount();
+  if (roundCount) {
+    const response = await openGrant.getGrantRoundInfo(roundCount - 1);
+    const start = Number(response.toHuman().start.replace(',', ''));
+    const end = Number(response.toHuman().end.replace(',', ''));
 
-function getProjectInfo(projectIndex) {
-  return readOpenGrantStorage('projects', projectIndex);
-}
+    if (currentBlockNumber >= start - confirmBlocks && currentBlockNumber < end) {
+      // If the round is start but not ended
+      // Why start - confirmBlocks? Because cancel round need send a extrinsic and wait for some blocks to finalized
+      await openGrant.waitForBlockNumber(end);
+    } else if (currentBlockNumber < start - confirmBlocks) {
+      // If round is not start, cancel this round
+      const { error, roundCanceled } = await cancelRound(openGrant);
 
-function getGrantRoundCount() {
-  return readOpenGrantStorage('grantRoundCount');
-}
-
-function getGrantRoundInfo(grantRoundIndex) {
-  return readOpenGrantStorage('grantRounds', grantRoundIndex);
-}
+      // // Problems: sometimes 'Insufficient balance' error
+      // assert.strictEqual(error, null, 'Cancel round should not catch an error');
+      // assert.strictEqual(roundCanceled, true, 'Cancel round response should not be empty');
+    }
+  }
+};
 
 module.exports = {
-  initAccount,
-  initApi,
-  getResponseFromEvents,
-  createOpenGrantExtrinsics,
-  readOpenGrantStorage,
-  getCurrentBlockNumber,
-  getProjectCount,
-  getProjectInfo,
-  getGrantRoundCount,
-  getGrantRoundInfo,
+  createProject,
+  scheduleRound,
+  cancelRound,
+  contribute,
+  cleanRound,
 };
