@@ -205,7 +205,7 @@ class OpenGrant {
   contribute({
     value, projectIndex,
   }) {
-    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.contribute.method, value, projectIndex);
+    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.contribute.method, projectIndex, value);
   }
 
   /**
