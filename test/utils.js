@@ -39,6 +39,24 @@ const scheduleRound = async (openGrant, params) => {
   return { info, error, index };
 };
 
+const cancel = async (openGrant, params) => {
+  let error = null;
+  const extrinsic = await openGrant.cancel(params);
+  const response = await OpenGrant.signAndSubscribeExtrinsic(
+    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancel,
+  ).catch((err) => {
+    error = err.message;
+  });
+  const info = response ? {
+    roundIndex: response[0].toNumber(),
+    projectIndex: response[1].toNumber(),
+  } : null;
+  return {
+    info,
+    error,
+  };
+};
+
 const cancelRound = async (openGrant) => {
   let error = null;
   const extrinsic = await openGrant.cancelRound();
@@ -58,13 +76,52 @@ const contribute = async (openGrant, params) => {
   ).catch((err) => {
     error = err.message;
   });
+  const info = response ? {
+    contributer: response[0].toHuman(),
+    projectIndex: response[1].toNumber(),
+    value: response[2].toNumber(),
+    block: response[3].toNumber(),
+  } : null;
   return {
-    info: {
-      contributer: response[0].toHuman(),
-      projectIndex: response[1].toNumber(),
-      value: response[2].toNumber(),
-      block: response[3].toNumber(),
-    },
+    info,
+    error,
+  };
+};
+
+const allowWithdraw = async (openGrant, params) => {
+  let error = null;
+  const extrinsic = await openGrant.allowWithdraw(params);
+  const response = await OpenGrant.signAndSubscribeExtrinsic(
+    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.allowWithdraw,
+  ).catch((err) => {
+    error = err.message;
+  });
+  const info = response ? {
+    roundIndex: response[0].toNumber(),
+    projectIndex: response[1].toNumber(),
+  } : null;
+  return {
+    info,
+    error,
+  };
+};
+
+const withdraw = async (openGrant, params) => {
+  let error = null;
+  const extrinsic = await openGrant.withdraw(params);
+  const response = await OpenGrant.signAndSubscribeExtrinsic(
+    extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.withdraw,
+  ).catch((err) => {
+    error = err.message;
+  });
+  const info = response ? {
+    roundIndex: response[0].toNumber(),
+    projectIndex: response[1].toNumber(),
+    matchingFund: response[2].toNumber(),
+    contributionFund: response[3].toNumber(),
+  } : null;
+  return {
+    info,
     error,
   };
 };
@@ -95,7 +152,10 @@ const cleanRound = async (openGrant) => {
 module.exports = {
   createProject,
   scheduleRound,
+  cancel,
   cancelRound,
   contribute,
+  allowWithdraw,
+  withdraw,
   cleanRound,
 };

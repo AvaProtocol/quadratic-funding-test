@@ -21,12 +21,14 @@ const shouldFail = async (openGrant, params) => {
   assert.strictEqual(_.isEmpty(info), true, 'Contribute info should be empty');
 };
 
-describe('Method Test - contribute', async () => {
+describe('Unit Test - contribute', async () => {
   const openGrant = new OpenGrant();
   let projectIndex = null;
 
   before(async () => {
     await openGrant.init();
+
+    await cleanRound(openGrant);
 
     // Need create project first before schedule round
     const { index, error } = await createProject(openGrant, {
@@ -38,7 +40,6 @@ describe('Method Test - contribute', async () => {
     assert.strictEqual(error, null);
     projectIndex = index;
 
-    await cleanRound(openGrant);
     const currentBlockNumber = await openGrant.getCurrentBlockNumber();
     const startBlockNumber = currentBlockNumber + 10;
     const response = await scheduleRound(openGrant, {

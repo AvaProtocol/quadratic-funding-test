@@ -16,7 +16,7 @@ const shouldFail = async (openGrant, params) => {
   assert.strictEqual(_.isEmpty(info), true, 'Project info should be empty');
 };
 
-describe('Method Test - create_project', async () => {
+describe('Unit Test - create_project', async () => {
   const openGrant = new OpenGrant();
   before(async () => {
     await openGrant.init();

@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test method": "mocha ./test/method/*.test.js --timeout 30000000",
-    "test logic": "mocha test/logic/*.test.js --timeout 30000000",
+    "test unit": "mocha ./test/unit/*.test.js --timeout 30000000",
+    "test functional": "mocha test/functional/*.test.js --timeout 30000000",
     "test": "mocha test/**/*.test.js --timeout 30000000",
     "lint": "./node_modules/eslint/bin/eslint.js test"
   },

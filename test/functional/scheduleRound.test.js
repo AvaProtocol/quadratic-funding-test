@@ -9,24 +9,28 @@ const {
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
+  const previousRoundCount = await openGrant.getGrantRoundCount();
+
   const { error, info } = await scheduleRound(openGrant, params);
   assert.strictEqual(error, null, 'Schedule round should not catch an error');
   assert.strictEqual(_.isEmpty(info), false, 'Round info should not be empty');
 
   const roundCount = await openGrant.getGrantRoundCount();
-  assert.strictEqual(roundCount, 1, 'After pass case, grant round count should be 1');
+  assert.strictEqual(roundCount, previousRoundCount + 1, 'After pass case, grant round count should increase 1');
 };
 
 const shouldFail = async (openGrant, params) => {
+  const previousRoundCount = await openGrant.getGrantRoundCount();
+
   const { error, info } = await scheduleRound(openGrant, params);
   assert.notEqual(error, null, 'Schedule round should catch an error');
   assert.strictEqual(_.isEmpty(info), true, 'Round info should be empty');
 
   const roundCount = await openGrant.getGrantRoundCount();
-  assert.strictEqual(roundCount, 0, 'After fail case, grant round count should be 0');
+  assert.strictEqual(roundCount, previousRoundCount, 'After fail case, grant round count should not change');
 };
 
-describe('Logic Test - schedule_round', async () => {
+describe('Functional Test - schedule_round', async () => {
   const openGrant = new OpenGrant();
   let projectIndex = null;
   let currentBlockNumber = null;
