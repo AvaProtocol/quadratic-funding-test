@@ -98,8 +98,6 @@ class OpenGrant {
     return new Promise(async (resolve) => {
       const unsub = await this.api.rpc.chain.subscribeNewHeads((header) => {
         const blockNumber = header.number.toNumber();
-        console.log('current blockNumber: ', blockNumber);
-        console.log('waitForBlockNumber: ', waitBlockNumber);
 
         if (blockNumber > waitBlockNumber) {
           unsub();
@@ -282,7 +280,6 @@ class OpenGrant {
     let response = null;
     let error = null;
     events.forEach(({ phase, event: { data, method, section } }) => {
-      console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
       if (section.toString() === 'system' && method.toString() === 'ExtrinsicFailed') {
         error = new Error('ExtrinsicFailed');
       }
