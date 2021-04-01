@@ -7,7 +7,7 @@
 
 	```
 	// Start Alice node:
-	./target/release/node-template \                                                     
+	./target/release/node-template \
 	--chain ./customSpecRaw.json \
 	--alice \
   	--port 30333 \
