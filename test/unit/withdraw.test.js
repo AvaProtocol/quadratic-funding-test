@@ -95,75 +95,75 @@ describe('Unit Test - withdraw', async () => {
     await shouldPass(openGrant, params);
   });
 
-  // it('Input roundIndex as invalid array index should fail', async () => {
-  //   const params = {
-  //     roundIndex: -1,
-  //     projectIndex: projectIndexes[1],
-  //   };
+  it('Input roundIndex as invalid array index should fail', async () => {
+    const params = {
+      roundIndex: -1,
+      projectIndex: projectIndexes[1],
+    };
 
-  //   await shouldFail(openGrant, params);
-  // });
+    await shouldFail(openGrant, params);
+  });
 
-  // it('Input roundIndex as a not exsit round index should fail', async () => {
-  //   const params = {
-  //     roundIndex: roundIndex + 10,
-  //     projectIndex: projectIndexes[1],
-  //   };
+  it('Input roundIndex as a not exsit round index should fail', async () => {
+    const params = {
+      roundIndex: roundIndex + 10,
+      projectIndex: projectIndexes[1],
+    };
 
-  //   await shouldFail(openGrant, params);
-  // });
+    await shouldFail(openGrant, params);
+  });
 
-  // it('Input projectIndex as invalid array index should fail', async () => {
-  //   const params = {
-  //     roundIndex,
-  //     projectIndex: -1,
-  //   };
+  it('Input projectIndex as invalid array index should fail', async () => {
+    const params = {
+      roundIndex,
+      projectIndex: -1,
+    };
 
-  //   await shouldFail(openGrant, params);
-  // });
+    await shouldFail(openGrant, params);
+  });
 
-  // it('Input projectIndex as a not exsit project index should fail', async () => {
-  //   const params = {
-  //     roundIndex,
-  //     projectIndex: projectIndexes[1] + 10,
-  //   };
+  it('Input projectIndex as a not exsit project index should fail', async () => {
+    const params = {
+      roundIndex,
+      projectIndex: projectIndexes[1] + 10,
+    };
 
-  //   await shouldFail(openGrant, params);
-  // });
+    await shouldFail(openGrant, params);
+  });
 
-  // it('Input as null should fail', async () => {
-  //   const params = {
-  //     roundIndex: null,
-  //     projectIndex: null,
-  //   };
+  it('Input as null should fail', async () => {
+    const params = {
+      roundIndex: null,
+      projectIndex: null,
+    };
 
-  //   await shouldFail(openGrant, params);
-  // });
+    await shouldFail(openGrant, params);
+  });
 
-  // it('Input as empty string should fail', async () => {
-  //   const params = {
-  //     roundIndex: '',
-  //     projectIndex: '',
-  //   };
+  it('Input as empty string should fail', async () => {
+    const params = {
+      roundIndex: '',
+      projectIndex: '',
+    };
 
-  //   await shouldFail(openGrant, params);
-  // });
+    await shouldFail(openGrant, params);
+  });
 
-  // it('Input with array type should fail', async () => {
-  //   const params = {
-  //     roundIndex: [roundIndex],
-  //     projectIndex: [projectIndexes[1]],
-  //   };
+  it('Input with array type should fail', async () => {
+    const params = {
+      roundIndex: [roundIndex],
+      projectIndex: [projectIndexes[1]],
+    };
 
-  //   await shouldFail(openGrant, params);
-  // });
+    await shouldFail(openGrant, params);
+  });
 
-  // it('Input with BigNumber type should fail', async () => {
-  //   const params = {
-  //     roundIndex: BigNumber(roundIndex),
-  //     projectIndex: BigNumber(projectIndexes[1]),
-  //   };
+  it('Input with BigNumber type should fail', async () => {
+    const params = {
+      roundIndex: BigNumber(roundIndex),
+      projectIndex: BigNumber(projectIndexes[1]),
+    };
 
-  //   await shouldFail(openGrant, params);
-  // });
+    await shouldFail(openGrant, params);
+  });
 });
