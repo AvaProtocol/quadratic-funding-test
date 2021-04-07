@@ -42,52 +42,12 @@ describe('Unit Test - create_project', async () => {
     await shouldPass(openGrant, params);
   });
 
-  it('Input with number type should fail', async () => {
-    const params = {
-      name: 123,
-      logo: 123,
-      description: 123,
-      website: 123,
-    };
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as null should fail', async () => {
-    const params = {
-      name: null,
-      logo: null,
-      description: null,
-      website: null,
-    };
-    await shouldFail(openGrant, params);
-  });
-
   it('Input as empty string should fail', async () => {
     const params = {
       name: '',
       logo: '',
       description: '',
       website: '',
-    };
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty array should fail', async () => {
-    const params = {
-      name: [],
-      logo: [],
-      description: [],
-      website: [],
-    };
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty object should fail', async () => {
-    const params = {
-      name: {},
-      logo: {},
-      description: {},
-      website: {},
     };
     await shouldFail(openGrant, params);
   });

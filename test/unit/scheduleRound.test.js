@@ -160,78 +160,19 @@ describe('Unit Test - schedule_round', async () => {
     await shouldFail(openGrant, params);
   });
 
-  // // TODO: Need get per round max projects length (Storage has no such maxLength filed)
-  // it('Error case with the length of projects > per round max projects length', async () => {
-  //   const params = {
-  //     start: global.blockNumber + 100,
-  //     end: global.blockNumber + 100000,
-  //     matchingFund: 100,
-  //     projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  //   };
-
-  //   let error = null;
-  //   await scheduleRound(params).catch((err) => {
-  //     error = err.message;
-  //   });
-  //   assert.notEqual(error, null);
-  // });
-
-  it('Input as null should fail', async () => {
+  // TODO: Need get per round max projects length (Storage has no such maxLength filed)
+  it('Error case with the length of projects > per round max projects length', async () => {
     const params = {
-      start: null,
-      end: null,
-      matchingFund: null,
-      projectIndexes: null,
+      start: global.blockNumber + 100,
+      end: global.blockNumber + 100000,
+      matchingFund: 100,
+      projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     };
 
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with string type should fail', async () => {
-    const params = {
-      start: `${startBlockNumber}`,
-      end: `${startBlockNumber + roundDuration}`,
-      matchingFund: `${matchingFund}`,
-      projectIndexes: `${projectIndex}`,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty string should fail', async () => {
-    const params = {
-      start: '',
-      end: '',
-      matchingFund: '',
-      projectIndexes: '',
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with BigNumber type should fail', async () => {
-    const params = {
-      start: BigNumber(startBlockNumber),
-      end: BigNumber(startBlockNumber + roundDuration),
-      matchingFund: BigNumber(matchingFund),
-      projectIndexes: [BigNumber(projectIndex)],
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Logic with schedule round when there is already another scheduled round should fail', async () => {
-    const params = {
-      start: startBlockNumber,
-      end: startBlockNumber + roundDuration,
-      matchingFund,
-      projectIndexes: [projectIndex],
-    };
-
-    // Schedule round A should pass
-    await shouldPass(openGrant, params);
-
-    // Schedule round B should fail
-    await shouldFail(openGrant, params);
+    let error = null;
+    await scheduleRound(params).catch((err) => {
+      error = err.message;
+    });
+    assert.notEqual(error, null);
   });
 });

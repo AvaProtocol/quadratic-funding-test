@@ -108,40 +108,4 @@ describe('Unit Test - cancel', async () => {
 
     await shouldFail(openGrant, params);
   });
-
-  it('Input as null should fail', async () => {
-    const params = {
-      roundIndex: null,
-      projectIndex: null,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty string should fail', async () => {
-    const params = {
-      roundIndex: '',
-      projectIndex: '',
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with array type should fail', async () => {
-    const params = {
-      roundIndex: [0],
-      projectIndex: [0],
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with BigNumber type should fail', async () => {
-    const params = {
-      roundIndex: BigNumber(0),
-      projectIndex: BigNumber(0),
-    };
-
-    await shouldFail(openGrant, params);
-  });
 });
