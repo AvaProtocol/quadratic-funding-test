@@ -5,6 +5,17 @@ const OpenGrant = require('./OpenGrant');
 const ExtrinsicsTypes = require('./extrinsicsTypes');
 const { confirmBlocks } = require('./constant');
 
+const fund = async (openGrant, params) => {
+  let error = null;
+  const extrinsic = await openGrant.fund(params);
+  await OpenGrant.signAndSubscribeExtrinsic(
+    extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.fund,
+  ).catch((err) => {
+    error = err.message;
+  });
+  return { error };
+};
+
 const createProject = async (openGrant, params) => {
   let error = null;
   let info = null;
@@ -19,7 +30,7 @@ const createProject = async (openGrant, params) => {
     index = response[0].toNumber();
     info = await openGrant.getProjectInfo(index);
   }
-  return { info, error, index };
+  return { info: (info && info.toHuman()), error, index };
 };
 
 const scheduleRound = async (openGrant, params) => {
@@ -57,9 +68,9 @@ const cancel = async (openGrant, params) => {
   };
 };
 
-const cancelRound = async (openGrant) => {
+const cancelRound = async (openGrant, params) => {
   let error = null;
-  const extrinsic = await openGrant.cancelRound();
+  const extrinsic = await openGrant.cancelRound(params);
   const response = await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancelRound,
   ).catch((err) => {
@@ -88,11 +99,25 @@ const contribute = async (openGrant, params) => {
   };
 };
 
-const allowWithdraw = async (openGrant, params) => {
+const finalizeRound = async (openGrant, params) => {
   let error = null;
-  const extrinsic = await openGrant.allowWithdraw(params);
+  const extrinsic = await openGrant.finalizeRound(params);
   const response = await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.allowWithdraw,
+    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.finalizeRound,
+  ).catch((err) => {
+    error = err.message;
+  });
+  return {
+    response: !!response,
+    error,
+  };
+};
+
+const approve = async (openGrant, params) => {
+  let error = null;
+  const extrinsic = await openGrant.approve(params);
+  const response = await OpenGrant.signAndSubscribeExtrinsic(
+    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.approve,
   ).catch((err) => {
     error = err.message;
   });
@@ -130,7 +155,9 @@ const cleanRound = async (openGrant) => {
   const currentBlockNumber = await openGrant.getCurrentBlockNumber();
   const roundCount = await openGrant.getGrantRoundCount();
   if (roundCount) {
-    const response = await openGrant.getGrantRoundInfo(roundCount - 1);
+    console.log('Clean round');
+    const roundIndex = roundCount - 1;
+    const response = await openGrant.getGrantRoundInfo(roundIndex);
     const start = Number(response.toHuman().start.replace(',', ''));
     const end = Number(response.toHuman().end.replace(',', ''));
 
@@ -140,7 +167,7 @@ const cleanRound = async (openGrant) => {
       await openGrant.waitForBlockNumber(end);
     } else if (currentBlockNumber < start - confirmBlocks) {
       // If round is not start, cancel this round
-      const { error, roundCanceled } = await cancelRound(openGrant);
+      const { error, roundCanceled } = await cancelRound(openGrant, { roundIndex });
 
       // // Problems: sometimes 'Insufficient balance' error
       // assert.strictEqual(error, null, 'Cancel round should not catch an error');
@@ -150,12 +177,14 @@ const cleanRound = async (openGrant) => {
 };
 
 module.exports = {
+  fund,
   createProject,
   scheduleRound,
   cancel,
   cancelRound,
   contribute,
-  allowWithdraw,
+  finalizeRound,
+  approve,
   withdraw,
   cleanRound,
 };

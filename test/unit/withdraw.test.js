@@ -7,7 +7,7 @@ const BigNumber = require('bignumber.js');
 const OpenGrant = require('../OpenGrant');
 const { matchingFund, roundDuration, value } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, allowWithdraw, contribute, withdraw,
+  createProject, scheduleRound, cleanRound, approve, contribute, withdraw, finalizeRound,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -72,9 +72,15 @@ describe('Unit Test - withdraw', async () => {
     // Wait for this round end
     await openGrant.waitForBlockNumber(endBlockNumber);
 
-    // Allow all projects withdraw
+    // Finalize all round
+    response = await finalizeRound(openGrant, {
+      roundIndex,
+    });
+    assert.strictEqual(response.response, true);
+
+    // Approve all projects to withdraw
     for (let idx = 0; idx < projectsCount; idx += 1) {
-      response = await allowWithdraw(openGrant, {
+      response = await approve(openGrant, {
         roundIndex,
         projectIndex: projectIndexes[idx],
       });

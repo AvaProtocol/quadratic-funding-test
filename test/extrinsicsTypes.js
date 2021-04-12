@@ -1,8 +1,10 @@
 const ExtrinsicsTypes = {
+  fund: { method: 'fund', event: 'FundSucceed' },
   createProject: { method: 'createProject', event: 'ProjectCreated' },
-  scheduleRound: { method: 'scheduleRound', event: 'GrantRoundCreated' },
+  scheduleRound: { method: 'scheduleRound', event: 'RoundCreated' },
   contribute: { method: 'contribute', event: 'ContributeSucceed' },
-  allowWithdraw: { method: 'allowWithdraw', event: 'GrantAllowedWithdraw' },
+  finalizeRound: { method: 'finalizeRound', event: 'Finalize' },
+  approve: { method: 'approve', event: 'GrantApproved' },
   withdraw: { method: 'withdraw', event: 'GrantWithdrawn' },
   cancel: { method: 'cancel', event: 'GrantCanceled' },
   cancelRound: { method: 'cancelRound', event: 'RoundCanceled' },

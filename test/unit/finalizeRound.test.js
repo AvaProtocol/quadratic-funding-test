@@ -1,27 +1,24 @@
 /* eslint-disable no-async-promise-executor */
 const { assert } = require('chai');
-const _ = require('lodash');
-const BigNumber = require('bignumber.js');
 
 const OpenGrant = require('../OpenGrant');
 const { matchingFund, roundDuration, value } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, allowWithdraw, contribute,
+  createProject, scheduleRound, cleanRound, contribute, finalizeRound,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
-  const { error, info } = await allowWithdraw(openGrant, params);
-  assert.strictEqual(error, null, 'AllowWithdraw should not catch an error');
-  assert.strictEqual(_.isMatch(info, params), true, 'AllowWithdraw info should contain the params');
+  const { error, response } = await finalizeRound(openGrant, params);
+  assert.strictEqual(error, null, 'finalizeRound should not catch an error');
+  assert.strictEqual(response, true, 'finalizeRound response should be true');
 };
 
 const shouldFail = async (openGrant, params) => {
-  const { error, info } = await allowWithdraw(openGrant, params);
-  assert.notEqual(error, null, 'AllowWithdraw should catch an error');
-  assert.strictEqual(_.isEmpty(info), true, 'AllowWithdraw info should be empty');
+  const { error } = await finalizeRound(openGrant, params);
+  assert.notEqual(error, null, 'approve should catch an error');
 };
 
-describe('Unit Test - allowWithdraw', async () => {
+describe('Unit Test - finalizeRound', async () => {
   const openGrant = new OpenGrant();
   let projectIndex = null;
   let roundIndex = null;
@@ -69,48 +66,19 @@ describe('Unit Test - allowWithdraw', async () => {
     await cleanRound(openGrant);
   });
 
-  it('Input with correct params should pass', async () => {
-    const params = {
-      roundIndex,
-      projectIndex,
-    };
-
-    await shouldPass(openGrant, params);
-  });
-
   it('Input roundIndex as invalid array index should fail', async () => {
     const params = {
       roundIndex: -1,
-      projectIndex,
     };
 
     await shouldFail(openGrant, params);
   });
 
-  it('Input roundIndex as a not exsit round index should fail', async () => {
-    const params = {
-      roundIndex: roundIndex + 10,
-      projectIndex,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input projectIndex as invalid array index should fail', async () => {
+  it('Input with correct params should pass', async () => {
     const params = {
       roundIndex,
-      projectIndex: -1,
     };
 
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input projectIndex as a not exsit project index should fail', async () => {
-    const params = {
-      roundIndex,
-      projectIndex: projectIndex + 10,
-    };
-
-    await shouldFail(openGrant, params);
+    await shouldPass(openGrant, params);
   });
 });

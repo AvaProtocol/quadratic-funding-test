@@ -7,10 +7,10 @@ const {
   cancelRound, scheduleRound, cleanRound,
 } = require('../utils');
 
-const shouldPass = async (openGrant) => {
+const shouldPass = async (openGrant, params) => {
   const previousRoundCount = await openGrant.getGrantRoundCount();
 
-  const { error, roundCanceled } = await cancelRound(openGrant);
+  const { error, roundCanceled } = await cancelRound(openGrant, params);
   assert.strictEqual(error, null, 'Cancel round should not catch an error');
   assert.strictEqual(roundCanceled, true, 'Cancel round result should be true');
 
@@ -18,10 +18,10 @@ const shouldPass = async (openGrant) => {
   assert.strictEqual(roundCount, previousRoundCount - 1, 'After pass case, grant round count should decrease 1');
 };
 
-const shouldFail = async (openGrant) => {
+const shouldFail = async (openGrant, params) => {
   const previousRoundCount = await openGrant.getGrantRoundCount();
 
-  const { error, roundCanceled } = await cancelRound(openGrant);
+  const { error, roundCanceled } = await cancelRound(openGrant, params);
   assert.notEqual(error, null, 'Cancel round should catch an error');
   assert.strictEqual(roundCanceled, false, 'Cancel round result should be false');
 
@@ -36,7 +36,7 @@ const scheduleNewRound = async (openGrant) => {
   const endBlockNumber = startBlockNumber + roundDuration * 2;
   const response = await scheduleRound(openGrant, {
     start: startBlockNumber,
-    end: endBlockNumber, // Double roundDuration ensure run all input cases in this round
+    end: endBlockNumber,
     matchingFund,
     projectIndexes: [],
   });
@@ -46,19 +46,24 @@ const scheduleNewRound = async (openGrant) => {
 };
 
 describe('Functional Test - cancel_round', async () => {
+  let roundIndex = null;
   const openGrant = new OpenGrant();
 
   before(async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+  });
 
+  beforeEach(async () => {
     // Schedule a new round
-    await scheduleNewRound(openGrant);
+    const response = await scheduleNewRound(openGrant);
+    assert.strictEqual(response.error, null);
+    roundIndex = response.index;
   });
 
   it('Logic with cancel scheduled round should pass', async () => {
-    await shouldPass(openGrant);
+    await shouldPass(openGrant, roundIndex);
   });
 
   it('Logic with cancel an active round should fail', async () => {

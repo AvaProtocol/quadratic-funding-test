@@ -24,10 +24,9 @@ class OpenGrant {
   // Initial the origin account: sudoOrigin, projectOrigin, userPrigin
   async initAccounts() {
     if (_.isEmpty(this.origin)) {
-      const { phrase } = config;
       await cryptoWaitReady();
       const keyring = new Keyring({ type: 'sr25519' });
-      const origin = keyring.addFromUri(phrase);
+      const origin = keyring.addFromUri('//Alice');
 
       // sudoOrigin, projectOrigin, userOrigin can be the same account in the test environment.
       this.sudoOrigin = origin;
@@ -76,13 +75,18 @@ class OpenGrant {
     return projectInfo;
   }
 
+  async getMaxRoundGrants() {
+    const maxRoundGrants = await this.readStorage('maxRoundGrants');
+    return maxRoundGrants.toNumber();
+  }
+
   async getGrantRoundCount() {
-    const roundCount = await this.readStorage('grantRoundCount');
+    const roundCount = await this.readStorage('roundCount');
     return roundCount.toNumber();
   }
 
   async getGrantRoundInfo(grantRoundIndex) {
-    const roundInfo = await this.readStorage('grantRounds', grantRoundIndex);
+    const roundInfo = await this.readStorage('rounds', grantRoundIndex);
     return roundInfo;
   }
 
@@ -119,14 +123,18 @@ class OpenGrant {
   static signAndSubscribeExtrinsic(extrinsic, origin, extrinsicType) {
     return new Promise(async (resolve, reject) => {
       const { method, event } = extrinsicType;
+      // console.log('method: ', method);
       const unsub = await extrinsic.signAndSend(origin, async ({ events = [], status }) => {
         if (status.isFinalized) {
           unsub();
-          const { response, error } = OpenGrant.getMethodResponseFromEvents(events, event);
+          // events.forEach(({ phase, event: { data, method: med, section } }) => {
+          //   console.log(`\t' ${phase}: ${section}.${med}:: ${data}`);
+          // });
+          const { response, error, success } = OpenGrant.getMethodResponseFromEvents(events, event);
           if (error) {
             reject(error);
-          } else if (!_.isEmpty(response)) {
-            resolve(response);
+          } else if (!_.isEmpty(response) || success) {
+            resolve(response || success);
           } else {
             reject(new Error(`${method} method has no response event`));
           }
@@ -152,6 +160,18 @@ class OpenGrant {
   }
 
   /**
+   * Create OpenGrant's extrinsic instance by sudo module
+   * @param {*} method OpenGrant's method name
+   * @param  {...any} args OpenGrant's method's params
+   * @returns
+   */
+  async createOpenGrantExtrinsicBySudo(method, ...args) {
+    const call = this.createOpenGrantExtrinsic(method, ...args);
+    // return this.api.tx.sudo.sudo(call);
+    return call;
+  }
+
+  /**
    * Create OpenGrant.createProject extrinsic instance.
    *
    * Description:
@@ -171,6 +191,22 @@ class OpenGrant {
   }
 
   /**
+   * Create OpenGrant.fund extrinsic instance.
+   *
+   * Description:
+   * Transfer fund to fund pool
+   *
+   * @param {*} param0 fund info
+   * @param {*} param0.fundBalance fund balance
+   *
+   */
+  fund({
+    fundBalance,
+  }) {
+    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.fund.method, fundBalance);
+  }
+
+  /**
    * Create OpenGrant.scheduleRound extrinsic instance
    *
    * Description:
@@ -186,7 +222,7 @@ class OpenGrant {
   scheduleRound({
     start, end, matchingFund, projectIndexes,
   }) {
-    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.scheduleRound.method, start, end, matchingFund, projectIndexes);
+    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.scheduleRound.method, start, end, matchingFund, projectIndexes);
   }
 
   /**
@@ -207,20 +243,19 @@ class OpenGrant {
   }
 
   /**
-   * Create OpenGrant.allowWithdraw extrinsic instance
+   * Create OpenGrant.finalizeRound extrinsic instance
    *
    * Description:
-   * The committee reviews and allows project owners to withdraw the project fund
+   * When the project is allowed withdraw, the project owner can withdraw the project fund
    *
-   * @param {*} param0 allowWithdraw info
-   * @param {*} param0.roundIndex allowWithdraw round index
-   * @param {*} param0.projectIndex allowWithdraw project index
+   * @param {*} param0 finalize round info
+   * @param {*} param0.roundIndex finalize round index
    *
    */
-  allowWithdraw({
-    roundIndex, projectIndex,
+  finalizeRound({
+    roundIndex,
   }) {
-    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.allowWithdraw.method, roundIndex, projectIndex);
+    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.finalizeRound.method, roundIndex);
   }
 
   /**
@@ -241,14 +276,34 @@ class OpenGrant {
   }
 
   /**
+   * Create OpenGrant.approve extrinsic instance
+   *
+   * Description:
+   * Approve the project owner to withdraw the amount
+   *
+   * @param {*} param0
+   * @param {*} param0.roundIndex approve round index
+   * @param {*} param0.projectIndex approve project index
+   *
+   */
+  approve({
+    roundIndex, projectIndex,
+  }) {
+    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.approve.method, roundIndex, projectIndex);
+  }
+
+  /**
    * Create OpenGrant.cancelRound extrinsic instance
    *
    * Description:
    * The committee can cancel the next schedule round
    *
+   * @param {*} param0 cancel round info
+   * @param {*} param0.roundIndex withdraw round index
+   *
    */
-  cancelRound() {
-    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.cancelRound.method);
+  cancelRound({ roundIndex }) {
+    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.cancelRound.method, roundIndex);
   }
 
   /**
@@ -264,7 +319,7 @@ class OpenGrant {
    *
    */
   cancel({ roundIndex, projectIndex }) {
-    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.cancel.method, roundIndex, projectIndex);
+    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.cancel.method, roundIndex, projectIndex);
   }
 
   // Utils module
@@ -279,15 +334,19 @@ class OpenGrant {
   static getMethodResponseFromEvents(events, queryMethod) {
     let response = null;
     let error = null;
+    let success = false;
     events.forEach(({ phase, event: { data, method, section } }) => {
       if (section.toString() === 'system' && method.toString() === 'ExtrinsicFailed') {
         error = new Error('ExtrinsicFailed');
+      }
+      if (section.toString() === 'system' && method.toString() === 'ExtrinsicSuccess') {
+        success = true;
       }
       if (section.toString() === 'openGrant' && method.toString() === queryMethod) {
         response = data;
       }
     });
-    return { response, error };
+    return { response, error, success };
   }
 }
 
