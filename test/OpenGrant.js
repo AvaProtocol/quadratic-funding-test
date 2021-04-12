@@ -167,6 +167,7 @@ class OpenGrant {
    */
   async createOpenGrantExtrinsicBySudo(method, ...args) {
     const call = this.createOpenGrantExtrinsic(method, ...args);
+    // TODO: need using root origin to sign and send
     // return this.api.tx.sudo.sudo(call);
     return call;
   }
