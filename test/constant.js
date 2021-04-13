@@ -1,5 +1,5 @@
 module.exports = {
-  initialFund: 5000000000000000,
+  initialFund: 2000000000000000,
   matchingFund: 100000000000000,
   roundDuration: 30,
   confirmBlocks: 12,
