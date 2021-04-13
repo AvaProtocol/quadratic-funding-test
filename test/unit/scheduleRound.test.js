@@ -37,6 +37,8 @@ describe('Unit Test - schedule_round', async () => {
   let currentBlockNumber = null;
   let startBlockNumber = null;
 
+  let maxRoundGrants = 0;
+
   before(async () => {
     await openGrant.init();
 
@@ -49,6 +51,8 @@ describe('Unit Test - schedule_round', async () => {
     });
     assert.strictEqual(error, null);
     projectIndex = index;
+
+    maxRoundGrants = await openGrant.getMaxRoundGrants();
   });
 
   beforeEach(async () => {
@@ -65,8 +69,8 @@ describe('Unit Test - schedule_round', async () => {
     const params = {
       start: startBlockNumber,
       end: startBlockNumber + roundDuration,
-      matchingFund,
-      projectIndexes: [projectIndex],
+      matchingFund: 0,
+      projectIndexes: [],
     };
 
     await shouldPass(openGrant, params);
@@ -160,13 +164,16 @@ describe('Unit Test - schedule_round', async () => {
     await shouldFail(openGrant, params);
   });
 
-  // TODO: Need get per round max projects length (Storage has no such maxLength filed)
   it('Error case with the length of projects > per round max projects length', async () => {
+    const projectIndexes = [];
+    for (let i = 0; i < maxRoundGrants + 10; i += 1) {
+      projectIndexes.push(i);
+    }
     const params = {
       start: global.blockNumber + 100,
       end: global.blockNumber + 100000,
       matchingFund: 100,
-      projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      projectIndexes,
     };
 
     let error = null;
