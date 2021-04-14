@@ -179,7 +179,7 @@ describe('Unit Test - schedule_round', async () => {
 
     let error = null;
     await scheduleRound(params).catch((err) => {
-      error = err.message;
+      error = err;
     });
     assert.notEqual(error, null);
   });

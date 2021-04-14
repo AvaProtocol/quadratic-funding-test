@@ -11,7 +11,7 @@ const fund = async (openGrant, params) => {
   await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.fund,
   ).catch((err) => {
-    error = err.message;
+    error = err;
   });
   return { error };
 };
@@ -24,7 +24,7 @@ const createProject = async (openGrant, params) => {
   const response = await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.createProject,
   ).catch((err) => {
-    error = err.message;
+    error = err;
   });
   if (!_.isEmpty(response)) {
     index = response[0].toNumber();
@@ -56,7 +56,7 @@ const cancel = async (openGrant, params) => {
   const response = await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancel,
   ).catch((err) => {
-    error = err.message;
+    error = err;
   });
   const info = response ? {
     roundIndex: response[0].toNumber(),
@@ -74,7 +74,7 @@ const cancelRound = async (openGrant, params) => {
   const response = await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancelRound,
   ).catch((err) => {
-    error = err.message;
+    error = err;
   });
   return { error, roundCanceled: !_.isEmpty(response) };
 };
@@ -85,7 +85,7 @@ const contribute = async (openGrant, params) => {
   const response = await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.userOrigin, ExtrinsicsTypes.contribute,
   ).catch((err) => {
-    error = err.message;
+    error = err;
   });
   const info = response ? {
     contributer: response[0].toHuman(),
@@ -105,7 +105,7 @@ const finalizeRound = async (openGrant, params) => {
   const response = await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.finalizeRound,
   ).catch((err) => {
-    error = err.message;
+    error = err;
   });
   return {
     response: !!response,
@@ -119,7 +119,7 @@ const approve = async (openGrant, params) => {
   const response = await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.approve,
   ).catch((err) => {
-    error = err.message;
+    error = err;
   });
   const info = response ? {
     roundIndex: response[0].toNumber(),
@@ -137,7 +137,7 @@ const withdraw = async (openGrant, params) => {
   const response = await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.withdraw,
   ).catch((err) => {
-    error = err.message;
+    error = err;
   });
   const info = response ? {
     roundIndex: response[0].toNumber(),
