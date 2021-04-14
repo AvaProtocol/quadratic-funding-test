@@ -41,7 +41,7 @@ const scheduleRound = async (openGrant, params) => {
   const response = await OpenGrant.signAndSubscribeExtrinsic(
     extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.scheduleRound,
   ).catch((err) => {
-    error = err.message;
+    error = err;
   });
   if (!_.isEmpty(response)) {
     index = response[0].toNumber();

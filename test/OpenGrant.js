@@ -136,7 +136,7 @@ class OpenGrant {
             console.log(`\t' ${phase}: ${section}.${med}:: ${data}`);
           });
           const { response, error, success } = OpenGrant.getMethodResponseFromEvents(events, event);
-          if (error) {
+          if (!_.isEmpty(error)) {
             reject(error);
           } else if (!_.isEmpty(response) || success) {
             resolve(response || success);
@@ -348,6 +348,10 @@ class OpenGrant {
       }
       if (section.toString() === 'openGrant' && method.toString() === queryMethod) {
         response = data;
+      }
+      if (section.toString() === 'sudo' && method.toString() === 'Sudid') {
+        const sudoResult = data.toHuman();
+        error = _.isEmpty(sudoResult[0].Err || sudoResult[0].err) ? null : (sudoResult[0].Err || sudoResult[0].err);
       }
     });
     return { response, error, success };

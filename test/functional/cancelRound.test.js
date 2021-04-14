@@ -8,25 +8,15 @@ const {
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
-  const previousRoundCount = await openGrant.getGrantRoundCount();
-
   const { error, roundCanceled } = await cancelRound(openGrant, params);
   assert.strictEqual(error, null, 'Cancel round should not catch an error');
   assert.strictEqual(roundCanceled, true, 'Cancel round result should be true');
-
-  const roundCount = await openGrant.getGrantRoundCount();
-  assert.strictEqual(roundCount, previousRoundCount - 1, 'After pass case, grant round count should decrease 1');
 };
 
 const shouldFail = async (openGrant, params) => {
-  const previousRoundCount = await openGrant.getGrantRoundCount();
-
   const { error, roundCanceled } = await cancelRound(openGrant, params);
   assert.notEqual(error, null, 'Cancel round should catch an error');
   assert.strictEqual(roundCanceled, false, 'Cancel round result should be false');
-
-  const roundCount = await openGrant.getGrantRoundCount();
-  assert.strictEqual(roundCount, previousRoundCount, 'After fail case, grant round count should not change');
 };
 
 const scheduleNewRound = async (openGrant, projectIndex) => {
