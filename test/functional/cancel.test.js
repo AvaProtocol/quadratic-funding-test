@@ -90,7 +90,7 @@ describe('Functional Test - cancel', async () => {
   it('Logic with cancel a canceled project should fail', async () => {
     const params = {
       roundIndex,
-      projectIndex: projectIndexes[2],
+      projectIndex: projectIndexes[1],
     };
 
     await shouldFail(openGrant, params);
@@ -122,11 +122,11 @@ describe('Functional Test - cancel', async () => {
 
   it('Logic with cancel an approved project round should fail', async () => {
     // Wait for project approved
-    await approve(openGrant, { roundIndex, projectIndex: projectIndexes[0] });
+    await approve(openGrant, { roundIndex, projectIndex: projectIndexes[3] });
 
     const params = {
       roundIndex,
-      projectIndex: projectIndexes[1],
+      projectIndex: projectIndexes[3],
     };
 
     await shouldFail(openGrant, params);
