@@ -123,7 +123,7 @@ describe('Unit Test - schedule_round', async () => {
 
   it('Input start/end < currentBlockNumber shoud fail', async () => {
     const params = {
-      start: currentBlockNumber - 1 - roundDuration,
+      start: currentBlockNumber - 2,
       end: currentBlockNumber - 1,
       matchingFund,
       projectIndexes: [projectIndex],
