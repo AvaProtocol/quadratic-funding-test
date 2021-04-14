@@ -6,7 +6,7 @@ const _ = require('lodash');
 const OpenGrant = require('../OpenGrant');
 const { roundDuration } = require('../constant');
 const {
-  scheduleRound, cleanRound, finalizeRound, checkAndFund,
+  scheduleRound, cleanRound, finalizeRound, checkAndFund, createProject,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -21,6 +21,7 @@ const shouldFail = async (openGrant, params) => {
 
 describe('Functional Test - finalizeRound', async () => {
   const openGrant = new OpenGrant();
+  let projectIndex = null;
   let roundIndex = null;
   let startBlockNumber = null;
   let endBlockNumber = null;
@@ -32,6 +33,15 @@ describe('Functional Test - finalizeRound', async () => {
 
     await checkAndFund(openGrant);
 
+    const { index, error } = await createProject(openGrant, {
+      name: 'name',
+      logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
+      description: 'description',
+      website: 'https://oak.tech/',
+    });
+    assert.strictEqual(error, null);
+    projectIndex = index;
+
     // Schedule a new round
     const currentBlockNumber = await openGrant.getCurrentBlockNumber();
     startBlockNumber = currentBlockNumber + 20;
@@ -40,7 +50,7 @@ describe('Functional Test - finalizeRound', async () => {
       start: startBlockNumber,
       end: endBlockNumber, // Double roundDuration ensure run all input cases in this round
       matchingFund: 0,
-      projectIndexes: [],
+      projectIndexes: [projectIndex],
     });
     assert.strictEqual(response.error, null);
     roundIndex = response.index;
