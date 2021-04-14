@@ -66,13 +66,13 @@ describe('Functional Test - cancel', async () => {
     await cleanRound(openGrant);
   });
 
-  it('Logic with cancel a project but this round is not start should fail', async () => {
+  it('Logic with cancel a project but this round is not start should pass', async () => {
     const params = {
       roundIndex,
       projectIndex: projectIndexes[0],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldPass(openGrant, params);
   });
 
   it('Logic with cancel a project but this round is active should pass', async () => {
