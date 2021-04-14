@@ -68,6 +68,10 @@ describe('Functional Test - cancel_round', async () => {
     endBlockNumber = response.endBlockNumber;
   });
 
+  afterEach(async () => {
+    await cleanRound(openGrant);
+  });
+
   it('Logic with cancel scheduled round should pass', async () => {
     await shouldPass(openGrant, roundIndex);
   });
