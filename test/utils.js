@@ -7,12 +7,17 @@ const { confirmBlocks, fundAmount } = require('./constant');
 
 const fund = async (openGrant, params) => {
   let error = null;
-  const extrinsic = await openGrant.fund(params);
-  await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.fund,
-  ).catch((err) => {
+  try {
+    const extrinsic = await openGrant.fund(params);
+    await OpenGrant.signAndSubscribeExtrinsic(
+      extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.fund,
+    ).catch((err) => {
+      error = err;
+    });
+  } catch (err) {
     error = err;
-  });
+  }
+
   return { error };
 };
 
@@ -20,16 +25,21 @@ const createProject = async (openGrant, params) => {
   let error = null;
   let info = null;
   let index = null;
-  const extrinsic = await openGrant.createProject(params);
-  const response = await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.createProject,
-  ).catch((err) => {
+  try {
+    const extrinsic = await openGrant.createProject(params);
+    const response = await OpenGrant.signAndSubscribeExtrinsic(
+      extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.createProject,
+    ).catch((err) => {
+      error = err;
+    });
+    if (!_.isEmpty(response)) {
+      index = response[0].toNumber();
+      info = await openGrant.getProjectInfo(index);
+    }
+  } catch (err) {
     error = err;
-  });
-  if (!_.isEmpty(response)) {
-    index = response[0].toNumber();
-    info = await openGrant.getProjectInfo(index);
   }
+
   return { info: (info && info.toHuman()), error, index };
 };
 
@@ -37,31 +47,41 @@ const scheduleRound = async (openGrant, params) => {
   let error = null;
   let info = null;
   let index = null;
-  const extrinsic = await openGrant.scheduleRound(params);
-  const response = await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.scheduleRound,
-  ).catch((err) => {
+  try {
+    const extrinsic = await openGrant.scheduleRound(params);
+    const response = await OpenGrant.signAndSubscribeExtrinsic(
+      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.scheduleRound,
+    ).catch((err) => {
+      error = err;
+    });
+    if (!_.isEmpty(response)) {
+      index = response[0].toNumber();
+      info = await openGrant.getGrantRoundInfo(index);
+    }
+  } catch (err) {
     error = err;
-  });
-  if (!_.isEmpty(response)) {
-    index = response[0].toNumber();
-    info = await openGrant.getGrantRoundInfo(index);
   }
+
   return { info, error, index };
 };
 
 const cancel = async (openGrant, params) => {
   let error = null;
-  const extrinsic = await openGrant.cancel(params);
-  const response = await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancel,
-  ).catch((err) => {
+  let info = null;
+  try {
+    const extrinsic = await openGrant.cancel(params);
+    const response = await OpenGrant.signAndSubscribeExtrinsic(
+      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancel,
+    ).catch((err) => {
+      error = err;
+    });
+    info = response ? {
+      roundIndex: response[0].toNumber(),
+      projectIndex: response[1].toNumber(),
+    } : null;
+  } catch (err) {
     error = err;
-  });
-  const info = response ? {
-    roundIndex: response[0].toNumber(),
-    projectIndex: response[1].toNumber(),
-  } : null;
+  }
   return {
     info,
     error,
@@ -70,29 +90,41 @@ const cancel = async (openGrant, params) => {
 
 const cancelRound = async (openGrant, params) => {
   let error = null;
-  const extrinsic = await openGrant.cancelRound(params);
-  const response = await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancelRound,
-  ).catch((err) => {
+  let response = null;
+  try {
+    const extrinsic = await openGrant.cancelRound(params);
+    response = await OpenGrant.signAndSubscribeExtrinsic(
+      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancelRound,
+    ).catch((err) => {
+      error = err;
+    });
+  } catch (err) {
     error = err;
-  });
+  }
+
   return { error, roundCanceled: !_.isEmpty(response) };
 };
 
 const contribute = async (openGrant, params) => {
   let error = null;
-  const extrinsic = await openGrant.contribute(params);
-  const response = await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.userOrigin, ExtrinsicsTypes.contribute,
-  ).catch((err) => {
+  let info = null;
+  try {
+    const extrinsic = await openGrant.contribute(params);
+    const response = await OpenGrant.signAndSubscribeExtrinsic(
+      extrinsic, openGrant.userOrigin, ExtrinsicsTypes.contribute,
+    ).catch((err) => {
+      error = err;
+    });
+    info = response ? {
+      contributer: response[0].toHuman(),
+      projectIndex: response[1].toNumber(),
+      value: response[2].toNumber(),
+      block: response[3].toNumber(),
+    } : null;
+  } catch (err) {
     error = err;
-  });
-  const info = response ? {
-    contributer: response[0].toHuman(),
-    projectIndex: response[1].toNumber(),
-    value: response[2].toNumber(),
-    block: response[3].toNumber(),
-  } : null;
+  }
+
   return {
     info,
     error,
@@ -101,12 +133,18 @@ const contribute = async (openGrant, params) => {
 
 const finalizeRound = async (openGrant, params) => {
   let error = null;
-  const extrinsic = await openGrant.finalizeRound(params);
-  const response = await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.finalizeRound,
-  ).catch((err) => {
+  let response = null;
+  try {
+    const extrinsic = await openGrant.finalizeRound(params);
+    response = await OpenGrant.signAndSubscribeExtrinsic(
+      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.finalizeRound,
+    ).catch((err) => {
+      error = err;
+    });
+  } catch (err) {
     error = err;
-  });
+  }
+
   return {
     response: !!response,
     error,
@@ -115,16 +153,22 @@ const finalizeRound = async (openGrant, params) => {
 
 const approve = async (openGrant, params) => {
   let error = null;
-  const extrinsic = await openGrant.approve(params);
-  const response = await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.approve,
-  ).catch((err) => {
+  let info = null;
+  try {
+    const extrinsic = await openGrant.approve(params);
+    const response = await OpenGrant.signAndSubscribeExtrinsic(
+      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.approve,
+    ).catch((err) => {
+      error = err;
+    });
+    info = response ? {
+      roundIndex: response[0].toNumber(),
+      projectIndex: response[1].toNumber(),
+    } : null;
+  } catch (err) {
     error = err;
-  });
-  const info = response ? {
-    roundIndex: response[0].toNumber(),
-    projectIndex: response[1].toNumber(),
-  } : null;
+  }
+
   return {
     info,
     error,
@@ -133,18 +177,24 @@ const approve = async (openGrant, params) => {
 
 const withdraw = async (openGrant, params) => {
   let error = null;
-  const extrinsic = await openGrant.withdraw(params);
-  const response = await OpenGrant.signAndSubscribeExtrinsic(
-    extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.withdraw,
-  ).catch((err) => {
+  let info = null;
+  try {
+    const extrinsic = await openGrant.withdraw(params);
+    const response = await OpenGrant.signAndSubscribeExtrinsic(
+      extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.withdraw,
+    ).catch((err) => {
+      error = err;
+    });
+    info = response ? {
+      roundIndex: response[0].toNumber(),
+      projectIndex: response[1].toNumber(),
+      matchingFund: response[2].toNumber(),
+      contributionFund: response[3].toNumber(),
+    } : null;
+  } catch (err) {
     error = err;
-  });
-  const info = response ? {
-    roundIndex: response[0].toNumber(),
-    projectIndex: response[1].toNumber(),
-    matchingFund: response[2].toNumber(),
-    contributionFund: response[3].toNumber(),
-  } : null;
+  }
+
   return {
     info,
     error,
