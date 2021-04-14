@@ -128,13 +128,9 @@ class OpenGrant {
   static signAndSubscribeExtrinsic(extrinsic, origin, extrinsicType) {
     return new Promise(async (resolve, reject) => {
       const { method, event } = extrinsicType;
-      console.log('method: ', method);
       const unsub = await extrinsic.signAndSend(origin, async ({ events = [], status }) => {
         if (status.isFinalized) {
           unsub();
-          events.forEach(({ phase, event: { data, method: med, section } }) => {
-            console.log(`\t' ${phase}: ${section}.${med}:: ${data}`);
-          });
           const { response, error, success } = OpenGrant.getMethodResponseFromEvents(events, event);
           if (!_.isEmpty(error)) {
             reject(error);

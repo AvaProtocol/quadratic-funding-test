@@ -205,7 +205,6 @@ const cleanRound = async (openGrant) => {
   const currentBlockNumber = await openGrant.getCurrentBlockNumber();
   const roundCount = await openGrant.getGrantRoundCount();
   if (roundCount) {
-    console.log('Clean round');
     const roundIndex = roundCount - 1;
     const response = await openGrant.getGrantRoundInfo(roundIndex);
     const start = Number(response.toHuman().start.replace(',', ''));
