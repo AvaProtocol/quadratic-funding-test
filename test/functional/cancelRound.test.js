@@ -38,6 +38,8 @@ const scheduleNewRound = async (openGrant, projectIndex) => {
 describe('Functional Test - cancel_round', async () => {
   let projectIndex = null;
   let roundIndex = null;
+  let startBlockNumber = null;
+  let endBlockNumber = null;
   const openGrant = new OpenGrant();
 
   before(async () => {
@@ -62,6 +64,8 @@ describe('Functional Test - cancel_round', async () => {
     const response = await scheduleNewRound(openGrant, projectIndex);
     assert.strictEqual(response.error, null);
     roundIndex = response.index;
+    startBlockNumber = response.startBlockNumber;
+    endBlockNumber = response.endBlockNumber;
   });
 
   it('Logic with cancel scheduled round should pass', async () => {
@@ -69,9 +73,6 @@ describe('Functional Test - cancel_round', async () => {
   });
 
   it('Logic with cancel an active round should fail', async () => {
-    // Schedule a new round
-    const { startBlockNumber, endBlockNumber } = await scheduleNewRound(openGrant);
-
     // Wait for this round start
     await openGrant.waitForBlockNumber(startBlockNumber);
 
