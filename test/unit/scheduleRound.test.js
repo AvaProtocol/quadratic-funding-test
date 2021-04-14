@@ -1,12 +1,11 @@
 /* eslint-disable max-len */
 const { assert } = require('chai');
-const BigNumber = require('bignumber.js');
 const _ = require('lodash');
 
 const OpenGrant = require('../OpenGrant');
 const { matchingFund, roundDuration } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound,
+  createProject, scheduleRound, cleanRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -42,6 +41,8 @@ describe('Unit Test - schedule_round', async () => {
   before(async () => {
     await openGrant.init();
 
+    await checkAndFund(openGrant);
+
     // Need create project first before schedule round
     const { index, error } = await createProject(openGrant, {
       name: 'name',
@@ -70,7 +71,7 @@ describe('Unit Test - schedule_round', async () => {
       start: startBlockNumber,
       end: startBlockNumber + roundDuration,
       matchingFund: 0,
-      projectIndexes: [],
+      projectIndexes: [projectIndex],
     };
 
     await shouldPass(openGrant, params);
@@ -122,8 +123,8 @@ describe('Unit Test - schedule_round', async () => {
 
   it('Input start/end < currentBlockNumber shoud fail', async () => {
     const params = {
-      start: currentBlockNumber - 100 - roundDuration,
-      end: currentBlockNumber - 100,
+      start: currentBlockNumber - 10 - roundDuration,
+      end: currentBlockNumber - 10,
       matchingFund,
       projectIndexes: [projectIndex],
     };

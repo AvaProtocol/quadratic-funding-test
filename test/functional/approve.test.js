@@ -4,9 +4,9 @@ const { assert } = require('chai');
 const _ = require('lodash');
 
 const OpenGrant = require('../OpenGrant');
-const { matchingFund, roundDuration } = require('../constant');
+const { roundDuration } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, approve, cancel, finalizeRound,
+  createProject, scheduleRound, cleanRound, approve, cancel, finalizeRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -33,6 +33,8 @@ describe('Functional Test - approve', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
 
     // Need create some new projects first
     for (let idx = 0; idx < projectsCount; idx += 1) {

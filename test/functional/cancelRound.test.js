@@ -4,7 +4,7 @@ const { assert } = require('chai');
 const OpenGrant = require('../OpenGrant');
 const { roundDuration, matchingFund } = require('../constant');
 const {
-  cancelRound, scheduleRound, cleanRound,
+  cancelRound, scheduleRound, cleanRound, checkAndFund, createProject,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -29,7 +29,7 @@ const shouldFail = async (openGrant, params) => {
   assert.strictEqual(roundCount, previousRoundCount, 'After fail case, grant round count should not change');
 };
 
-const scheduleNewRound = async (openGrant) => {
+const scheduleNewRound = async (openGrant, projectIndex) => {
   // Schedule a new round
   const currentBlockNumber = await openGrant.getCurrentBlockNumber();
   const startBlockNumber = currentBlockNumber + 10;
@@ -38,7 +38,7 @@ const scheduleNewRound = async (openGrant) => {
     start: startBlockNumber,
     end: endBlockNumber,
     matchingFund,
-    projectIndexes: [],
+    projectIndexes: [projectIndex],
   });
   assert.strictEqual(response.error, null);
 
@@ -46,6 +46,7 @@ const scheduleNewRound = async (openGrant) => {
 };
 
 describe('Functional Test - cancel_round', async () => {
+  let projectIndex = null;
   let roundIndex = null;
   const openGrant = new OpenGrant();
 
@@ -53,11 +54,22 @@ describe('Functional Test - cancel_round', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
+
+    const { index, error } = await createProject(openGrant, {
+      name: 'name',
+      logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
+      description: 'description',
+      website: 'https://oak.tech/',
+    });
+    assert.strictEqual(error, null);
+    projectIndex = index;
   });
 
   beforeEach(async () => {
     // Schedule a new round
-    const response = await scheduleNewRound(openGrant);
+    const response = await scheduleNewRound(openGrant, projectIndex);
     assert.strictEqual(response.error, null);
     roundIndex = response.index;
   });

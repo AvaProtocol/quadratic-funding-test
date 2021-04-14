@@ -2,9 +2,11 @@
 const { assert } = require('chai');
 
 const OpenGrant = require('../OpenGrant');
-const { matchingFund, roundDuration, value } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, contribute, finalizeRound,
+  matchingFund, roundDuration, value,
+} = require('../constant');
+const {
+  createProject, scheduleRound, cleanRound, contribute, finalizeRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -27,6 +29,8 @@ describe('Unit Test - finalizeRound', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
 
     const { index, error } = await createProject(openGrant, {
       name: 'name',

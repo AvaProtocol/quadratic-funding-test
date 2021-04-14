@@ -3,7 +3,7 @@ const _ = require('lodash');
 
 const OpenGrant = require('./OpenGrant');
 const ExtrinsicsTypes = require('./extrinsicsTypes');
-const { confirmBlocks } = require('./constant');
+const { confirmBlocks, fundAmount } = require('./constant');
 
 const fund = async (openGrant, params) => {
   let error = null;
@@ -167,12 +167,16 @@ const cleanRound = async (openGrant) => {
       await openGrant.waitForBlockNumber(end);
     } else if (currentBlockNumber < start - confirmBlocks) {
       // If round is not start, cancel this round
-      const { error, roundCanceled } = await cancelRound(openGrant, { roundIndex });
-
-      // // Problems: sometimes 'Insufficient balance' error
-      // assert.strictEqual(error, null, 'Cancel round should not catch an error');
-      // assert.strictEqual(roundCanceled, true, 'Cancel round response should not be empty');
+      await cancelRound(openGrant, { roundIndex });
     }
+  }
+};
+
+// Check the unused fund, if <= fundAmount, add new fund to pool
+const checkAndFund = async (openGrant) => {
+  const unusedFund = await openGrant.getUnusedFund();
+  if (unusedFund <= fundAmount) {
+    await fund(openGrant, { fundBalance: fundAmount });
   }
 };
 
@@ -187,4 +191,5 @@ module.exports = {
   approve,
   withdraw,
   cleanRound,
+  checkAndFund,
 };

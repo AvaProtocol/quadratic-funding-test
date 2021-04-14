@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const _ = require('lodash');
 
 const OpenGrant = require('../OpenGrant');
-const { createProject } = require('../utils');
+const { createProject, checkAndFund } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
   const { error, info } = await createProject(openGrant, params);
@@ -20,6 +20,8 @@ describe('Unit Test - create_project', async () => {
   const openGrant = new OpenGrant();
   before(async () => {
     await openGrant.init();
+
+    await checkAndFund(openGrant);
   });
 
   it('Input with non-empty string should pass', async () => {

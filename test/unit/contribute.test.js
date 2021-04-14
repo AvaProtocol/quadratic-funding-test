@@ -1,12 +1,13 @@
 /* eslint-disable no-async-promise-executor */
 const { assert } = require('chai');
 const _ = require('lodash');
-const BigNumber = require('bignumber.js');
 
 const OpenGrant = require('../OpenGrant');
-const { matchingFund, roundDuration, value } = require('../constant');
 const {
-  createProject, scheduleRound, contribute, cleanRound,
+  matchingFund, roundDuration, value,
+} = require('../constant');
+const {
+  createProject, scheduleRound, contribute, cleanRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -29,6 +30,8 @@ describe('Unit Test - contribute', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
 
     // Need create project first before schedule round
     const { index, error } = await createProject(openGrant, {

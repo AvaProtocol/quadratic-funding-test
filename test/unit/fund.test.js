@@ -1,5 +1,5 @@
 const { assert } = require('chai');
-const { initialFund } = require('../constant');
+const { fundAmount } = require('../constant');
 
 const OpenGrant = require('../OpenGrant');
 const { fund } = require('../utils');
@@ -23,7 +23,7 @@ describe('Unit Test - fund', async () => {
 
   it('Input with non-empty string should pass', async () => {
     const params = {
-      fundBalance: initialFund,
+      fundBalance: fundAmount,
     };
     await shouldPass(openGrant, params);
   });

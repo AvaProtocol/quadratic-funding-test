@@ -1,11 +1,10 @@
 /* eslint-disable no-async-promise-executor */
 const { assert } = require('chai');
-const _ = require('lodash');
 
 const OpenGrant = require('../OpenGrant');
 const { matchingFund, roundDuration } = require('../constant');
 const {
-  scheduleRound, cleanRound, cancelRound,
+  scheduleRound, cleanRound, cancelRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -26,6 +25,8 @@ describe('Unit Test - cancelRound', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
 
     const currentBlockNumber = await openGrant.getCurrentBlockNumber();
     const startBlockNumber = currentBlockNumber + 10;

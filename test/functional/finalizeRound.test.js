@@ -6,7 +6,7 @@ const _ = require('lodash');
 const OpenGrant = require('../OpenGrant');
 const { roundDuration } = require('../constant');
 const {
-  scheduleRound, cleanRound, finalizeRound,
+  scheduleRound, cleanRound, finalizeRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -29,6 +29,8 @@ describe('Functional Test - finalizeRound', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
 
     // Schedule a new round
     const currentBlockNumber = await openGrant.getCurrentBlockNumber();
