@@ -42,7 +42,7 @@ const scheduleNewRound = async (openGrant, projectIndex) => {
   });
   assert.strictEqual(response.error, null);
 
-  return { startBlockNumber, endBlockNumber };
+  return { startBlockNumber, endBlockNumber, ...response };
 };
 
 describe('Functional Test - cancel_round', async () => {
