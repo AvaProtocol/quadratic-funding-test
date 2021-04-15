@@ -73,20 +73,20 @@ describe('Functional Test - cancel_round', async () => {
   });
 
   it('Logic with cancel scheduled round should pass', async () => {
-    await shouldPass(openGrant, roundIndex);
+    await shouldPass(openGrant, { roundIndex });
   });
 
   it('Logic with cancel an active round should fail', async () => {
     // Wait for this round start
     await openGrant.waitForBlockNumber(startBlockNumber);
 
-    await shouldFail(openGrant, roundIndex);
+    await shouldFail(openGrant, { roundIndex });
 
     // Wait for this round end
     await openGrant.waitForBlockNumber(endBlockNumber);
   });
 
   it('Logic with cancel round but there are no more scheduled round should fail', async () => {
-    await shouldFail(openGrant, roundIndex);
+    await shouldFail(openGrant, { roundIndex });
   });
 });
