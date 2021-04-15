@@ -6,7 +6,7 @@ const _ = require('lodash');
 const OpenGrant = require('../OpenGrant');
 const { matchingFund, roundDuration } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, approve, withdraw, cancel, checkAndFund,
+  createProject, scheduleRound, cleanRound, approve, withdraw, cancel, checkAndFund, finalizeRound,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -90,6 +90,9 @@ describe('Functional Test - withdraw', async () => {
   it('Logic with withdraw a project but not in this round should fail', async () => {
     // Wait for this round end
     await openGrant.waitForBlockNumber(endBlockNumber);
+
+    // Wait for this round finalized
+    await finalizeRound(openGrant, { roundIndex });
 
     const params = {
       roundIndex,
