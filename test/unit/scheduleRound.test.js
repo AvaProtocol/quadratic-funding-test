@@ -185,10 +185,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes,
     };
 
-    let error = null;
-    await scheduleRound(params).catch((err) => {
-      error = err;
-    });
+    const { error } = await scheduleRound(openGrant, params);
     assert.notEqual(error, null);
   });
 });
