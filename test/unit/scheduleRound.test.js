@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable max-len */
 const { assert } = require('chai');
 const _ = require('lodash');
@@ -166,14 +167,21 @@ describe('Unit Test - schedule_round', async () => {
   });
 
   it('Error case with the length of projects > per round max projects length', async () => {
-    const projectIndexes = [];
-    for (let i = 0; i < maxRoundGrants + 10; i += 1) {
-      projectIndexes.push(i);
+    const projectIndexes = [projectIndex];
+    for (let i = 0; i < maxRoundGrants; i += 1) {
+      const { index, error } = await createProject(openGrant, {
+        name: 'name',
+        logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
+        description: 'description',
+        website: 'https://oak.tech/',
+      });
+      assert.strictEqual(error, null);
+      projectIndexes.push(index);
     }
     const params = {
-      start: global.blockNumber + 100,
-      end: global.blockNumber + 100000,
-      matchingFund: 100,
+      start: startBlockNumber + 1000,
+      end: startBlockNumber + roundDuration + 1000,
+      matchingFund: 0,
       projectIndexes,
     };
 
