@@ -86,7 +86,7 @@ describe('Functional Test - cancel_round', async () => {
     await openGrant.waitForBlockNumber(endBlockNumber);
   });
 
-  it('Logic with cancel round but there are no more scheduled round should fail', async () => {
+  it('Logic with cancel a canceled round should fail', async () => {
     await shouldFail(openGrant, { roundIndex });
   });
 });
