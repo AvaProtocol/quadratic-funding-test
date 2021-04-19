@@ -2,12 +2,13 @@
 /* eslint-disable no-async-promise-executor */
 const { assert } = require('chai');
 const _ = require('lodash');
-const BigNumber = require('bignumber.js');
 
 const OpenGrant = require('../OpenGrant');
-const { matchingFund, roundDuration, value } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, allowWithdraw, contribute, withdraw,
+  matchingFund, roundDuration, value,
+} = require('../constant');
+const {
+  createProject, scheduleRound, cleanRound, approve, contribute, withdraw, finalizeRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -32,6 +33,8 @@ describe('Unit Test - withdraw', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
 
     // Need create some new projects first
     for (let idx = 0; idx < projectsCount; idx += 1) {
@@ -72,9 +75,15 @@ describe('Unit Test - withdraw', async () => {
     // Wait for this round end
     await openGrant.waitForBlockNumber(endBlockNumber);
 
-    // Allow all projects withdraw
+    // Finalize all round
+    response = await finalizeRound(openGrant, {
+      roundIndex,
+    });
+    assert.strictEqual(response.response, true);
+
+    // Approve all projects to withdraw
     for (let idx = 0; idx < projectsCount; idx += 1) {
-      response = await allowWithdraw(openGrant, {
+      response = await approve(openGrant, {
         roundIndex,
         projectIndex: projectIndexes[idx],
       });
@@ -126,42 +135,6 @@ describe('Unit Test - withdraw', async () => {
     const params = {
       roundIndex,
       projectIndex: projectIndexes[1] + 10,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as null should fail', async () => {
-    const params = {
-      roundIndex: null,
-      projectIndex: null,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty string should fail', async () => {
-    const params = {
-      roundIndex: '',
-      projectIndex: '',
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with array type should fail', async () => {
-    const params = {
-      roundIndex: [roundIndex],
-      projectIndex: [projectIndexes[1]],
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with BigNumber type should fail', async () => {
-    const params = {
-      roundIndex: BigNumber(roundIndex),
-      projectIndex: BigNumber(projectIndexes[1]),
     };
 
     await shouldFail(openGrant, params);

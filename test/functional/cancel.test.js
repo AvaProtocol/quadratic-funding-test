@@ -4,26 +4,26 @@ const { assert } = require('chai');
 const _ = require('lodash');
 
 const OpenGrant = require('../OpenGrant');
-const { matchingFund, roundDuration } = require('../constant');
+const { roundDuration } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, allowWithdraw, cancel,
+  createProject, scheduleRound, cleanRound, approve, cancel, finalizeRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
-  const { error, info } = await allowWithdraw(openGrant, params);
-  assert.strictEqual(error, null, 'AllowWithdraw should not catch an error');
-  assert.strictEqual(_.isMatch(info, params), true, 'AllowWithdraw info should contain the params');
+  const { error, info } = await cancel(openGrant, params);
+  assert.strictEqual(error, null, 'cancel should not catch an error');
+  assert.strictEqual(_.isMatch(info, params), true, 'cancel info should contain the params');
 };
 
 const shouldFail = async (openGrant, params) => {
-  const { error, info } = await allowWithdraw(openGrant, params);
-  assert.notEqual(error, null, 'AllowWithdraw should catch an error');
-  assert.strictEqual(_.isEmpty(info), true, 'AllowWithdraw info should be empty');
+  const { error, info } = await cancel(openGrant, params);
+  assert.notEqual(error, null, 'cancel should catch an error');
+  assert.strictEqual(_.isEmpty(info), true, 'cancel info should be empty');
 };
 
-describe('Functional Test - allowWithdraw', async () => {
+describe('Functional Test - cancel', async () => {
   const openGrant = new OpenGrant();
-  const projectsCount = 2;
+  const projectsCount = 5;
   const projectIndexes = [];
   let roundIndex = null;
   let startBlockNumber = null;
@@ -33,6 +33,8 @@ describe('Functional Test - allowWithdraw', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
 
     // Need create some new projects first
     for (let idx = 0; idx < projectsCount; idx += 1) {
@@ -53,8 +55,8 @@ describe('Functional Test - allowWithdraw', async () => {
     const response = await scheduleRound(openGrant, {
       start: startBlockNumber,
       end: endBlockNumber, // Double roundDuration ensure run all input cases in this round
-      matchingFund,
-      projectIndexes: [projectIndexes[0]],
+      matchingFund: 0,
+      projectIndexes: [projectIndexes[0], projectIndexes[1], projectIndexes[2], projectIndexes[3]],
     });
     assert.strictEqual(response.error, null);
     roundIndex = response.index;
@@ -64,31 +66,7 @@ describe('Functional Test - allowWithdraw', async () => {
     await cleanRound(openGrant);
   });
 
-  it('Logic with allow withdraw a project but this round is not start should fail', async () => {
-    const params = {
-      roundIndex,
-      projectIndex: projectIndexes[0],
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Logic with allow withdraw a project but this round is active should fail', async () => {
-    // Wait for this round start
-    await openGrant.waitForBlockNumber(startBlockNumber);
-
-    const params = {
-      roundIndex,
-      projectIndex: projectIndexes[0],
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Logic with allow withdraw a project in this round should pass', async () => {
-    // Wait for this round end
-    await openGrant.waitForBlockNumber(endBlockNumber);
-
+  it('Logic with cancel a project but this round is not start should pass', async () => {
     const params = {
       roundIndex,
       projectIndex: projectIndexes[0],
@@ -97,16 +75,19 @@ describe('Functional Test - allowWithdraw', async () => {
     await shouldPass(openGrant, params);
   });
 
-  it('Logic with allow withdraw an allowed withdraw project should fail', async () => {
+  it('Logic with cancel a project but this round is active should pass', async () => {
+    // Wait for this round start
+    await openGrant.waitForBlockNumber(startBlockNumber);
+
     const params = {
       roundIndex,
-      projectIndex: projectIndexes[0],
+      projectIndex: projectIndexes[1],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldPass(openGrant, params);
   });
 
-  it('Logic with allow withdraw a project but not in this round should fail', async () => {
+  it('Logic with cancel a canceled project should fail', async () => {
     const params = {
       roundIndex,
       projectIndex: projectIndexes[1],
@@ -115,13 +96,47 @@ describe('Functional Test - allowWithdraw', async () => {
     await shouldFail(openGrant, params);
   });
 
-  it('Logic with allow withdraw a canceled project should fail', async () => {
+  it('Logic with cancel a project in ended round should pass', async () => {
+    // Wait for this round end
+    await openGrant.waitForBlockNumber(endBlockNumber);
+
     const params = {
       roundIndex,
-      projectIndex: projectIndexes[0],
+      projectIndex: projectIndexes[2],
     };
 
-    await cancel(openGrant, params);
+    await shouldPass(openGrant, params);
+  });
+
+  it('Logic with cancel a project in finalized round should fail', async () => {
+    // Wait for this round finalize
+    await finalizeRound(openGrant, { roundIndex });
+
+    const params = {
+      roundIndex,
+      projectIndex: projectIndexes[3],
+    };
+
+    await shouldFail(openGrant, params);
+  });
+
+  it('Logic with cancel an approved project round should fail', async () => {
+    // Wait for project approved
+    await approve(openGrant, { roundIndex, projectIndex: projectIndexes[3] });
+
+    const params = {
+      roundIndex,
+      projectIndex: projectIndexes[3],
+    };
+
+    await shouldFail(openGrant, params);
+  });
+
+  it('Logic with cancel a project but not in this round should fail', async () => {
+    const params = {
+      roundIndex,
+      projectIndex: projectIndexes[4],
+    };
 
     await shouldFail(openGrant, params);
   });

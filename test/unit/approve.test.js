@@ -1,27 +1,28 @@
 /* eslint-disable no-async-promise-executor */
 const { assert } = require('chai');
 const _ = require('lodash');
-const BigNumber = require('bignumber.js');
 
 const OpenGrant = require('../OpenGrant');
-const { matchingFund, roundDuration, value } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, allowWithdraw, contribute,
+  matchingFund, roundDuration, value,
+} = require('../constant');
+const {
+  createProject, scheduleRound, cleanRound, approve, contribute, finalizeRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
-  const { error, info } = await allowWithdraw(openGrant, params);
-  assert.strictEqual(error, null, 'AllowWithdraw should not catch an error');
-  assert.strictEqual(_.isMatch(info, params), true, 'AllowWithdraw info should contain the params');
+  const { error, info } = await approve(openGrant, params);
+  assert.strictEqual(error, null, 'approve should not catch an error');
+  assert.strictEqual(_.isMatch(info, params), true, 'approve info should contain the params');
 };
 
 const shouldFail = async (openGrant, params) => {
-  const { error, info } = await allowWithdraw(openGrant, params);
-  assert.notEqual(error, null, 'AllowWithdraw should catch an error');
-  assert.strictEqual(_.isEmpty(info), true, 'AllowWithdraw info should be empty');
+  const { error, info } = await approve(openGrant, params);
+  assert.notEqual(error, null, 'approve should catch an error');
+  assert.strictEqual(_.isEmpty(info), true, 'approve info should be empty');
 };
 
-describe('Unit Test - allowWithdraw', async () => {
+describe('Unit Test - approve', async () => {
   const openGrant = new OpenGrant();
   let projectIndex = null;
   let roundIndex = null;
@@ -30,6 +31,8 @@ describe('Unit Test - allowWithdraw', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
 
     const { index, error } = await createProject(openGrant, {
       name: 'name',
@@ -63,6 +66,9 @@ describe('Unit Test - allowWithdraw', async () => {
 
     // Wait for this round end
     await openGrant.waitForBlockNumber(endBlockNumber);
+
+    // finalize round
+    await finalizeRound(openGrant, { roundIndex });
   });
 
   after(async () => {
@@ -109,42 +115,6 @@ describe('Unit Test - allowWithdraw', async () => {
     const params = {
       roundIndex,
       projectIndex: projectIndex + 10,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as null should fail', async () => {
-    const params = {
-      roundIndex: null,
-      projectIndex: null,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty string should fail', async () => {
-    const params = {
-      roundIndex: '',
-      projectIndex: '',
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with array type should fail', async () => {
-    const params = {
-      roundIndex: [roundIndex],
-      projectIndex: [projectIndex],
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with BigNumber type should fail', async () => {
-    const params = {
-      roundIndex: BigNumber(roundIndex),
-      projectIndex: BigNumber(projectIndex),
     };
 
     await shouldFail(openGrant, params);

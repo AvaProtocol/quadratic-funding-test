@@ -1,12 +1,13 @@
 /* eslint-disable no-async-promise-executor */
 const { assert } = require('chai');
 const _ = require('lodash');
-const BigNumber = require('bignumber.js');
 
 const OpenGrant = require('../OpenGrant');
-const { matchingFund, roundDuration, value } = require('../constant');
 const {
-  createProject, scheduleRound, contribute, cleanRound,
+  matchingFund, roundDuration, value,
+} = require('../constant');
+const {
+  createProject, scheduleRound, contribute, cleanRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -29,6 +30,8 @@ describe('Unit Test - contribute', async () => {
     await openGrant.init();
 
     await cleanRound(openGrant);
+
+    await checkAndFund(openGrant);
 
     // Need create project first before schedule round
     const { index, error } = await createProject(openGrant, {
@@ -98,42 +101,6 @@ describe('Unit Test - contribute', async () => {
     const params = {
       projectIndex: projectIndex + 10,
       value,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as null should fail', async () => {
-    const params = {
-      projectIndex: null,
-      value: null,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty string should fail', async () => {
-    const params = {
-      projectIndex: '',
-      value: '',
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with array type should fail', async () => {
-    const params = {
-      projectIndex: [0],
-      value: [100],
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with BigNumber type should fail', async () => {
-    const params = {
-      projectIndex: BigNumber(0),
-      value: BigNumber(100),
     };
 
     await shouldFail(openGrant, params);

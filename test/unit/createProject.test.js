@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const _ = require('lodash');
 
 const OpenGrant = require('../OpenGrant');
-const { createProject } = require('../utils');
+const { createProject, checkAndFund } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
   const { error, info } = await createProject(openGrant, params);
@@ -20,6 +20,8 @@ describe('Unit Test - create_project', async () => {
   const openGrant = new OpenGrant();
   before(async () => {
     await openGrant.init();
+
+    await checkAndFund(openGrant);
   });
 
   it('Input with non-empty string should pass', async () => {
@@ -42,52 +44,12 @@ describe('Unit Test - create_project', async () => {
     await shouldPass(openGrant, params);
   });
 
-  it('Input with number type should fail', async () => {
-    const params = {
-      name: 123,
-      logo: 123,
-      description: 123,
-      website: 123,
-    };
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as null should fail', async () => {
-    const params = {
-      name: null,
-      logo: null,
-      description: null,
-      website: null,
-    };
-    await shouldFail(openGrant, params);
-  });
-
   it('Input as empty string should fail', async () => {
     const params = {
       name: '',
       logo: '',
       description: '',
       website: '',
-    };
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty array should fail', async () => {
-    const params = {
-      name: [],
-      logo: [],
-      description: [],
-      website: [],
-    };
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty object should fail', async () => {
-    const params = {
-      name: {},
-      logo: {},
-      description: {},
-      website: {},
     };
     await shouldFail(openGrant, params);
   });

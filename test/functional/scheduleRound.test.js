@@ -5,7 +5,7 @@ const _ = require('lodash');
 const OpenGrant = require('../OpenGrant');
 const { roundDuration, matchingFund } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound,
+  createProject, scheduleRound, cleanRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -39,6 +39,8 @@ describe('Functional Test - schedule_round', async () => {
   before(async () => {
     await openGrant.init();
 
+    await checkAndFund(openGrant);
+
     // Need create project first before schedule round
     const { index, error } = await createProject(openGrant, {
       name: 'name',
@@ -53,15 +55,15 @@ describe('Functional Test - schedule_round', async () => {
   beforeEach(async () => {
     await cleanRound(openGrant);
     currentBlockNumber = await openGrant.getCurrentBlockNumber();
-    startBlockNumber = currentBlockNumber + 1000;
+    startBlockNumber = currentBlockNumber + 10000;
   });
 
   afterEach(async () => {
     await cleanRound(openGrant);
   });
 
-  it('Logic with schedule round when there is already another scheduled round should fail', async () => {
-    const params = {
+  it('Logic with schedule a overlap round should fail', async () => {
+    let params = {
       start: startBlockNumber,
       end: startBlockNumber + roundDuration,
       matchingFund,
@@ -71,7 +73,36 @@ describe('Functional Test - schedule_round', async () => {
     // Schedule round A should pass
     await shouldPass(openGrant, params);
 
+    params = {
+      start: startBlockNumber + 1,
+      end: startBlockNumber + roundDuration + 1,
+      matchingFund,
+      projectIndexes: [projectIndex],
+    };
+
     // Schedule round B should fail
     await shouldFail(openGrant, params);
+  });
+
+  it('Logic with schedule a non-overlap round should pass', async () => {
+    let params = {
+      start: startBlockNumber,
+      end: startBlockNumber + roundDuration,
+      matchingFund,
+      projectIndexes: [projectIndex],
+    };
+
+    // Schedule round A should pass
+    await shouldPass(openGrant, params);
+
+    params = {
+      start: startBlockNumber + roundDuration + 1,
+      end: startBlockNumber + roundDuration + 1 + roundDuration,
+      matchingFund,
+      projectIndexes: [projectIndex],
+    };
+
+    // Schedule round B should fail
+    await shouldPass(openGrant, params);
   });
 });

@@ -1,12 +1,12 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable max-len */
 const { assert } = require('chai');
-const BigNumber = require('bignumber.js');
 const _ = require('lodash');
 
 const OpenGrant = require('../OpenGrant');
 const { matchingFund, roundDuration } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound,
+  createProject, scheduleRound, cleanRound, checkAndFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -37,8 +37,12 @@ describe('Unit Test - schedule_round', async () => {
   let currentBlockNumber = null;
   let startBlockNumber = null;
 
+  let maxRoundGrants = 0;
+
   before(async () => {
     await openGrant.init();
+
+    await checkAndFund(openGrant);
 
     // Need create project first before schedule round
     const { index, error } = await createProject(openGrant, {
@@ -49,6 +53,8 @@ describe('Unit Test - schedule_round', async () => {
     });
     assert.strictEqual(error, null);
     projectIndex = index;
+
+    maxRoundGrants = await openGrant.getMaxRoundGrants();
   });
 
   beforeEach(async () => {
@@ -65,7 +71,7 @@ describe('Unit Test - schedule_round', async () => {
     const params = {
       start: startBlockNumber,
       end: startBlockNumber + roundDuration,
-      matchingFund,
+      matchingFund: 0,
       projectIndexes: [projectIndex],
     };
 
@@ -118,8 +124,8 @@ describe('Unit Test - schedule_round', async () => {
 
   it('Input start/end < currentBlockNumber shoud fail', async () => {
     const params = {
-      start: currentBlockNumber - 100 - roundDuration,
-      end: currentBlockNumber - 100,
+      start: currentBlockNumber - 2,
+      end: currentBlockNumber - 1,
       matchingFund,
       projectIndexes: [projectIndex],
     };
@@ -160,78 +166,26 @@ describe('Unit Test - schedule_round', async () => {
     await shouldFail(openGrant, params);
   });
 
-  // // TODO: Need get per round max projects length (Storage has no such maxLength filed)
-  // it('Error case with the length of projects > per round max projects length', async () => {
-  //   const params = {
-  //     start: global.blockNumber + 100,
-  //     end: global.blockNumber + 100000,
-  //     matchingFund: 100,
-  //     projectIndexes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  //   };
-
-  //   let error = null;
-  //   await scheduleRound(params).catch((err) => {
-  //     error = err.message;
-  //   });
-  //   assert.notEqual(error, null);
-  // });
-
-  it('Input as null should fail', async () => {
+  it('Error case with the length of projects > per round max projects length', async () => {
+    const projectIndexes = [projectIndex];
+    for (let i = 0; i < maxRoundGrants; i += 1) {
+      const { index, error } = await createProject(openGrant, {
+        name: 'name',
+        logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
+        description: 'description',
+        website: 'https://oak.tech/',
+      });
+      assert.strictEqual(error, null);
+      projectIndexes.push(index);
+    }
     const params = {
-      start: null,
-      end: null,
-      matchingFund: null,
-      projectIndexes: null,
+      start: startBlockNumber + 1000,
+      end: startBlockNumber + roundDuration + 1000,
+      matchingFund: 0,
+      projectIndexes,
     };
 
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with string type should fail', async () => {
-    const params = {
-      start: `${startBlockNumber}`,
-      end: `${startBlockNumber + roundDuration}`,
-      matchingFund: `${matchingFund}`,
-      projectIndexes: `${projectIndex}`,
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input as empty string should fail', async () => {
-    const params = {
-      start: '',
-      end: '',
-      matchingFund: '',
-      projectIndexes: '',
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Input with BigNumber type should fail', async () => {
-    const params = {
-      start: BigNumber(startBlockNumber),
-      end: BigNumber(startBlockNumber + roundDuration),
-      matchingFund: BigNumber(matchingFund),
-      projectIndexes: [BigNumber(projectIndex)],
-    };
-
-    await shouldFail(openGrant, params);
-  });
-
-  it('Logic with schedule round when there is already another scheduled round should fail', async () => {
-    const params = {
-      start: startBlockNumber,
-      end: startBlockNumber + roundDuration,
-      matchingFund,
-      projectIndexes: [projectIndex],
-    };
-
-    // Schedule round A should pass
-    await shouldPass(openGrant, params);
-
-    // Schedule round B should fail
-    await shouldFail(openGrant, params);
+    const { error } = await scheduleRound(openGrant, params);
+    assert.notEqual(error, null);
   });
 });

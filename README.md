@@ -33,9 +33,10 @@
 ### How to test
 
 1. Install dependencies: `yarn`
-2. Run all test cases: `npm test`
-3. Run all Unit Test cases: `npm test unit`
-4. Run all Functional Test cases: `npm test functional`
+2. Need run fund test first: `npm test fund`
+3. Run all test cases: `npm test`
+4. Run all Unit Test cases: `npm test unit`
+5. Run all Functional Test cases: `npm test functional`
 
 ### Manual Test
 
@@ -54,9 +55,9 @@
 	{
 	  "ProjectIndex": "u32",
 	  "ProjectOf": "Project",
-	  "GrantRoundIndex": "u32",
-	  "GrantRoundOf": "GrantRound",
-	  "GrantRound": {
+	  "RoundIndex": "u32",
+	  "RoundOf": "Round",
+	  "Round": {
 	    "start": "BlockNumber",
 	    "end": "BlockNumber",
 	    "matching_fund": "Balance",

@@ -1,25 +1,27 @@
 /* eslint-disable max-len */
 module.exports = {
   endpoint: 'ws://127.0.0.1:9944',
-  phrase: 'spider orange arena large bench input south tornado cost imitate shift sentence', // This account just for test
   types: {
     ProjectIndex: 'u32',
     ProjectOf: 'Project',
-    GrantRoundIndex: 'u32',
-    GrantRoundOf: 'GrantRound',
-    GrantRound: {
+    RoundIndex: 'u32',
+    RoundOf: 'Round',
+    Round: {
       start: 'BlockNumber',
       end: 'BlockNumber',
       matching_fund: 'Balance',
       grants: 'Vec<Grant>',
-      funder: 'AccountId',
+      is_canceled: 'bool',
+      is_finalized: 'bool',
     },
     Grant: {
       project_index: 'ProjectIndex',
       contributions: 'Vec<Contribution>',
-      is_allowed_withdraw: 'bool',
+      is_approved: 'bool',
       is_canceled: 'bool',
       is_withdrawn: 'bool',
+      withdrawal_period: 'BlockNumber',
+      matching_fund: 'Balance',
     },
     Contribution: {
       account_id: 'AccountId',
