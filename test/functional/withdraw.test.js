@@ -6,7 +6,7 @@ const _ = require('lodash');
 const OpenGrant = require('../OpenGrant');
 const { matchingFund, roundDuration } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, approve, withdraw, cancel, checkAndFund, finalizeRound,
+  createProject, scheduleRound, cleanRound, approve, withdraw, cancel, preFund, finalizeRound,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -34,7 +34,7 @@ describe('Functional Test - withdraw', async () => {
 
     await cleanRound(openGrant);
 
-    await checkAndFund(openGrant);
+    await preFund(openGrant);
 
     // Need create some new projects first
     for (let idx = 0; idx < projectsCount; idx += 1) {

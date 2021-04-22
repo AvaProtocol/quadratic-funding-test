@@ -221,12 +221,9 @@ const cleanRound = async (openGrant) => {
   }
 };
 
-// Check the unused fund, if <= fundAmount, add new fund to pool
-const checkAndFund = async (openGrant) => {
-  const unusedFund = await openGrant.getUnusedFund();
-  if (unusedFund <= fundAmount) {
-    await fund(openGrant, { fundBalance: fundAmount });
-  }
+// Fund before run the test cases
+const preFund = async (openGrant) => {
+  await fund(openGrant, { fundBalance: fundAmount });
 };
 
 module.exports = {
@@ -240,5 +237,5 @@ module.exports = {
   approve,
   withdraw,
   cleanRound,
-  checkAndFund,
+  preFund,
 };
