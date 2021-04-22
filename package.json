@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test fund": "mocha test/unit/fund.test.js --timeout 30000000",
     "test unit": "mocha ./test/unit/*.test.js --timeout 30000000",
     "test functional": "mocha test/functional/*.test.js --timeout 30000000",
     "test": "mocha test/**/*.test.js --timeout 30000000",
