@@ -6,7 +6,7 @@ const _ = require('lodash');
 const OpenGrant = require('../OpenGrant');
 const { matchingFund, roundDuration } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, checkAndFund,
+  createProject, scheduleRound, cleanRound, preFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -37,12 +37,12 @@ describe('Unit Test - schedule_round', async () => {
   let currentBlockNumber = null;
   let startBlockNumber = null;
 
-  let maxRoundGrants = 0;
+  let maxGrantCountPerRound = 0;
 
   before(async () => {
     await openGrant.init();
 
-    await checkAndFund(openGrant);
+    await preFund(openGrant);
 
     // Need create project first before schedule round
     const { index, error } = await createProject(openGrant, {
@@ -54,7 +54,7 @@ describe('Unit Test - schedule_round', async () => {
     assert.strictEqual(error, null);
     projectIndex = index;
 
-    maxRoundGrants = await openGrant.getMaxRoundGrants();
+    maxGrantCountPerRound = await openGrant.getMaxGrantCountPerRound();
   });
 
   beforeEach(async () => {
@@ -168,7 +168,7 @@ describe('Unit Test - schedule_round', async () => {
 
   it('Error case with the length of projects > per round max projects length', async () => {
     const projectIndexes = [projectIndex];
-    for (let i = 0; i < maxRoundGrants; i += 1) {
+    for (let i = 0; i < maxGrantCountPerRound; i += 1) {
       const { index, error } = await createProject(openGrant, {
         name: 'name',
         logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',

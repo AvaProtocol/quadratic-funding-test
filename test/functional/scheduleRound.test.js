@@ -5,7 +5,7 @@ const _ = require('lodash');
 const OpenGrant = require('../OpenGrant');
 const { roundDuration, matchingFund } = require('../constant');
 const {
-  createProject, scheduleRound, cleanRound, checkAndFund,
+  createProject, scheduleRound, cleanRound, preFund,
 } = require('../utils');
 
 const shouldPass = async (openGrant, params) => {
@@ -39,7 +39,7 @@ describe('Functional Test - schedule_round', async () => {
   before(async () => {
     await openGrant.init();
 
-    await checkAndFund(openGrant);
+    await preFund(openGrant);
 
     // Need create project first before schedule round
     const { index, error } = await createProject(openGrant, {

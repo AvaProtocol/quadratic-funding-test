@@ -75,9 +75,9 @@ class OpenGrant {
     return projectInfo;
   }
 
-  async getMaxRoundGrants() {
-    const maxRoundGrants = await this.readStorage('maxRoundGrants');
-    return maxRoundGrants.toNumber();
+  async getMaxGrantCountPerRound() {
+    const maxGrantCountPerRound = await this.readStorage('maxGrantCountPerRound');
+    return maxGrantCountPerRound.toNumber();
   }
 
   async getGrantRoundCount() {
@@ -88,11 +88,6 @@ class OpenGrant {
   async getGrantRoundInfo(grantRoundIndex) {
     const roundInfo = await this.readStorage('rounds', grantRoundIndex);
     return roundInfo;
-  }
-
-  async getUnusedFund() {
-    const unusedFund = await this.readStorage('unusedFund');
-    return unusedFund.toNumber();
   }
 
   // Subscribe module
