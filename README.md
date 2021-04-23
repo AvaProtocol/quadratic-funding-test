@@ -33,10 +33,9 @@
 ### How to test
 
 1. Install dependencies: `yarn`
-2. Need run fund test first: `npm test fund`
-3. Run all test cases: `npm test`
-4. Run all Unit Test cases: `npm test unit`
-5. Run all Functional Test cases: `npm test functional`
+2. Run all test cases: `npm test`
+3. Run all Unit Test cases: `npm run "test unit"`
+4. Run all Functional Test cases: `npm run "test functional"`
 
 ### Manual Test
 
