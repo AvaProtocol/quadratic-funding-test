@@ -43,7 +43,7 @@
 	    "is_approved": "bool",
 	    "is_canceled": "bool",
 	    "is_withdrawn": "bool",
-	    "withdrawal_period": "BlockNumber",
+	    "withdrawal_expiration": "BlockNumber",
 	    "matching_fund": "Balance"
 	  },
 	  "Contribution": {
