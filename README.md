@@ -18,7 +18,6 @@
 1. Start local node
 
 	```
-	git checkout check_identity
 	./target/release/node-template --dev --tmp
 	```
 
@@ -35,14 +34,17 @@
 	    "end": "BlockNumber",
 	    "matching_fund": "Balance",
 	    "grants": "Vec<Grant>",
-	    "funder": "AccountId"
+	    "is_canceled": "bool",
+	    "is_finalized": "bool"
 	  },
 	  "Grant": {
 	    "project_index": "ProjectIndex",
 	    "contributions": "Vec<Contribution>",
-	    "is_allowed_withdraw": "bool",
+	    "is_approved": "bool",
 	    "is_canceled": "bool",
-	    "is_withdrawn": "bool"
+	    "is_withdrawn": "bool",
+	    "withdrawal_expiration": "BlockNumber",
+	    "matching_fund": "Balance"
 	  },
 	  "Contribution": {
 	    "account_id": "AccountId",
