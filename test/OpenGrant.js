@@ -57,7 +57,7 @@ class OpenGrant {
    * @param  {...any} args OpenGrant's method's params
    */
   readStorage(method, ...args) {
-    return this.api.query.openGrant[method](...args);
+    return this.api.query.quadraticFunding[method](...args);
   }
 
   async getCurrentBlockNumber() {
@@ -152,7 +152,7 @@ class OpenGrant {
    * @param  {...any} args OpenGrant's method's params
    */
   createOpenGrantExtrinsic(method, ...args) {
-    return this.api.tx.openGrant[method](...args);
+    return this.api.tx.quadraticFunding[method](...args);
   }
 
   /**
@@ -337,7 +337,7 @@ class OpenGrant {
       if (section.toString() === 'system' && method.toString() === 'ExtrinsicSuccess') {
         success = true;
       }
-      if (section.toString() === 'openGrant' && method.toString() === queryMethod) {
+      if (section.toString() === 'quadraticFunding' && method.toString() === queryMethod) {
         response = data;
       }
       if (section.toString() === 'sudo' && method.toString() === 'Sudid') {
