@@ -2,47 +2,47 @@
 const { assert } = require('chai');
 const _ = require('lodash');
 
-const OpenGrant = require('../OpenGrant');
+const QuadraticFunding = require('../QuadraticFunding');
 const { roundDuration, matchingFund } = require('../constant');
 const {
   createProject, scheduleRound, cleanRound, preFund,
 } = require('../utils');
 
-const shouldPass = async (openGrant, params) => {
-  const previousRoundCount = await openGrant.getGrantRoundCount();
+const shouldPass = async (quadraticFunding, params) => {
+  const previousRoundCount = await quadraticFunding.getGrantRoundCount();
 
-  const { error, info } = await scheduleRound(openGrant, params);
+  const { error, info } = await scheduleRound(quadraticFunding, params);
   assert.strictEqual(error, null, 'Schedule round should not catch an error');
   assert.strictEqual(_.isEmpty(info), false, 'Round info should not be empty');
 
-  const roundCount = await openGrant.getGrantRoundCount();
+  const roundCount = await quadraticFunding.getGrantRoundCount();
   assert.strictEqual(roundCount, previousRoundCount + 1, 'After pass case, grant round count should increase 1');
 };
 
-const shouldFail = async (openGrant, params) => {
-  const previousRoundCount = await openGrant.getGrantRoundCount();
+const shouldFail = async (quadraticFunding, params) => {
+  const previousRoundCount = await quadraticFunding.getGrantRoundCount();
 
-  const { error, info } = await scheduleRound(openGrant, params);
+  const { error, info } = await scheduleRound(quadraticFunding, params);
   assert.notEqual(error, null, 'Schedule round should catch an error');
   assert.strictEqual(_.isEmpty(info), true, 'Round info should be empty');
 
-  const roundCount = await openGrant.getGrantRoundCount();
+  const roundCount = await quadraticFunding.getGrantRoundCount();
   assert.strictEqual(roundCount, previousRoundCount, 'After fail case, grant round count should not change');
 };
 
 describe('Functional Test - schedule_round', async () => {
-  const openGrant = new OpenGrant();
+  const quadraticFunding = new QuadraticFunding();
   let projectIndex = null;
   let currentBlockNumber = null;
   let startBlockNumber = null;
 
   before(async () => {
-    await openGrant.init();
+    await quadraticFunding.init();
 
-    await preFund(openGrant);
+    await preFund(quadraticFunding);
 
     // Need create project first before schedule round
-    const { index, error } = await createProject(openGrant, {
+    const { index, error } = await createProject(quadraticFunding, {
       name: 'name',
       logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
       description: 'description',
@@ -53,13 +53,13 @@ describe('Functional Test - schedule_round', async () => {
   });
 
   beforeEach(async () => {
-    await cleanRound(openGrant);
-    currentBlockNumber = await openGrant.getCurrentBlockNumber();
+    await cleanRound(quadraticFunding);
+    currentBlockNumber = await quadraticFunding.getCurrentBlockNumber();
     startBlockNumber = currentBlockNumber + 10000;
   });
 
   afterEach(async () => {
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
   });
 
   it('Logic with schedule a overlap round should fail', async () => {
@@ -71,7 +71,7 @@ describe('Functional Test - schedule_round', async () => {
     };
 
     // Schedule round A should pass
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
 
     params = {
       start: startBlockNumber + 1,
@@ -81,7 +81,7 @@ describe('Functional Test - schedule_round', async () => {
     };
 
     // Schedule round B should fail
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Logic with schedule a non-overlap round should pass', async () => {
@@ -93,7 +93,7 @@ describe('Functional Test - schedule_round', async () => {
     };
 
     // Schedule round A should pass
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
 
     params = {
       start: startBlockNumber + roundDuration + 1,
@@ -103,6 +103,6 @@ describe('Functional Test - schedule_round', async () => {
     };
 
     // Schedule round B should fail
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 });

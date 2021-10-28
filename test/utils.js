@@ -1,16 +1,16 @@
 /* eslint-disable max-len */
 const _ = require('lodash');
 
-const OpenGrant = require('./OpenGrant');
+const QuadraticFunding = require('./QuadraticFunding');
 const ExtrinsicsTypes = require('./extrinsicsTypes');
 const { confirmBlocks, fundAmount } = require('./constant');
 
-const fund = async (openGrant, params) => {
+const fund = async (quadraticFunding, params) => {
   let error = null;
   try {
-    const extrinsic = await openGrant.fund(params);
-    await OpenGrant.signAndSubscribeExtrinsic(
-      extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.fund,
+    const extrinsic = await quadraticFunding.fund(params);
+    await QuadraticFunding.signAndSubscribeExtrinsic(
+      extrinsic, quadraticFunding.projectOrigin, ExtrinsicsTypes.fund,
     ).catch((err) => {
       error = err;
     });
@@ -21,20 +21,20 @@ const fund = async (openGrant, params) => {
   return { error };
 };
 
-const createProject = async (openGrant, params) => {
+const createProject = async (quadraticFunding, params) => {
   let error = null;
   let info = null;
   let index = null;
   try {
-    const extrinsic = await openGrant.createProject(params);
-    const response = await OpenGrant.signAndSubscribeExtrinsic(
-      extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.createProject,
+    const extrinsic = await quadraticFunding.createProject(params);
+    const response = await QuadraticFunding.signAndSubscribeExtrinsic(
+      extrinsic, quadraticFunding.projectOrigin, ExtrinsicsTypes.createProject,
     ).catch((err) => {
       error = err;
     });
     if (!_.isEmpty(response)) {
       index = response[0].toNumber();
-      info = await openGrant.getProjectInfo(index);
+      info = await quadraticFunding.getProjectInfo(index);
     }
   } catch (err) {
     error = err;
@@ -43,20 +43,20 @@ const createProject = async (openGrant, params) => {
   return { info: (info && info.toHuman()), error, index };
 };
 
-const scheduleRound = async (openGrant, params) => {
+const scheduleRound = async (quadraticFunding, params) => {
   let error = null;
   let info = null;
   let index = null;
   try {
-    const extrinsic = await openGrant.scheduleRound(params);
-    const response = await OpenGrant.signAndSubscribeExtrinsic(
-      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.scheduleRound,
+    const extrinsic = await quadraticFunding.scheduleRound(params);
+    const response = await QuadraticFunding.signAndSubscribeExtrinsic(
+      extrinsic, quadraticFunding.sudoOrigin, ExtrinsicsTypes.scheduleRound,
     ).catch((err) => {
       error = err;
     });
     if (!_.isEmpty(response)) {
       index = response[0].toNumber();
-      info = await openGrant.getGrantRoundInfo(index);
+      info = await quadraticFunding.getGrantRoundInfo(index);
     }
   } catch (err) {
     error = err;
@@ -65,13 +65,13 @@ const scheduleRound = async (openGrant, params) => {
   return { info, error, index };
 };
 
-const cancel = async (openGrant, params) => {
+const cancel = async (quadraticFunding, params) => {
   let error = null;
   let info = null;
   try {
-    const extrinsic = await openGrant.cancel(params);
-    const response = await OpenGrant.signAndSubscribeExtrinsic(
-      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancel,
+    const extrinsic = await quadraticFunding.cancel(params);
+    const response = await QuadraticFunding.signAndSubscribeExtrinsic(
+      extrinsic, quadraticFunding.sudoOrigin, ExtrinsicsTypes.cancel,
     ).catch((err) => {
       error = err;
     });
@@ -88,13 +88,13 @@ const cancel = async (openGrant, params) => {
   };
 };
 
-const cancelRound = async (openGrant, params) => {
+const cancelRound = async (quadraticFunding, params) => {
   let error = null;
   let response = null;
   try {
-    const extrinsic = await openGrant.cancelRound(params);
-    response = await OpenGrant.signAndSubscribeExtrinsic(
-      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.cancelRound,
+    const extrinsic = await quadraticFunding.cancelRound(params);
+    response = await QuadraticFunding.signAndSubscribeExtrinsic(
+      extrinsic, quadraticFunding.sudoOrigin, ExtrinsicsTypes.cancelRound,
     ).catch((err) => {
       error = err;
     });
@@ -105,13 +105,13 @@ const cancelRound = async (openGrant, params) => {
   return { error, roundCanceled: !_.isEmpty(response) };
 };
 
-const contribute = async (openGrant, params) => {
+const contribute = async (quadraticFunding, params) => {
   let error = null;
   let info = null;
   try {
-    const extrinsic = await openGrant.contribute(params);
-    const response = await OpenGrant.signAndSubscribeExtrinsic(
-      extrinsic, openGrant.userOrigin, ExtrinsicsTypes.contribute,
+    const extrinsic = await quadraticFunding.contribute(params);
+    const response = await QuadraticFunding.signAndSubscribeExtrinsic(
+      extrinsic, quadraticFunding.userOrigin, ExtrinsicsTypes.contribute,
     ).catch((err) => {
       error = err;
     });
@@ -131,13 +131,13 @@ const contribute = async (openGrant, params) => {
   };
 };
 
-const finalizeRound = async (openGrant, params) => {
+const finalizeRound = async (quadraticFunding, params) => {
   let error = null;
   let response = null;
   try {
-    const extrinsic = await openGrant.finalizeRound(params);
-    response = await OpenGrant.signAndSubscribeExtrinsic(
-      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.finalizeRound,
+    const extrinsic = await quadraticFunding.finalizeRound(params);
+    response = await QuadraticFunding.signAndSubscribeExtrinsic(
+      extrinsic, quadraticFunding.sudoOrigin, ExtrinsicsTypes.finalizeRound,
     ).catch((err) => {
       error = err;
     });
@@ -151,13 +151,13 @@ const finalizeRound = async (openGrant, params) => {
   };
 };
 
-const approve = async (openGrant, params) => {
+const approve = async (quadraticFunding, params) => {
   let error = null;
   let info = null;
   try {
-    const extrinsic = await openGrant.approve(params);
-    const response = await OpenGrant.signAndSubscribeExtrinsic(
-      extrinsic, openGrant.sudoOrigin, ExtrinsicsTypes.approve,
+    const extrinsic = await quadraticFunding.approve(params);
+    const response = await QuadraticFunding.signAndSubscribeExtrinsic(
+      extrinsic, quadraticFunding.sudoOrigin, ExtrinsicsTypes.approve,
     ).catch((err) => {
       error = err;
     });
@@ -175,13 +175,13 @@ const approve = async (openGrant, params) => {
   };
 };
 
-const withdraw = async (openGrant, params) => {
+const withdraw = async (quadraticFunding, params) => {
   let error = null;
   let info = null;
   try {
-    const extrinsic = await openGrant.withdraw(params);
-    const response = await OpenGrant.signAndSubscribeExtrinsic(
-      extrinsic, openGrant.projectOrigin, ExtrinsicsTypes.withdraw,
+    const extrinsic = await quadraticFunding.withdraw(params);
+    const response = await QuadraticFunding.signAndSubscribeExtrinsic(
+      extrinsic, quadraticFunding.projectOrigin, ExtrinsicsTypes.withdraw,
     ).catch((err) => {
       error = err;
     });
@@ -201,29 +201,29 @@ const withdraw = async (openGrant, params) => {
   };
 };
 
-const cleanRound = async (openGrant) => {
-  const currentBlockNumber = await openGrant.getCurrentBlockNumber();
-  const roundCount = await openGrant.getGrantRoundCount();
+const cleanRound = async (quadraticFunding) => {
+  const currentBlockNumber = await quadraticFunding.getCurrentBlockNumber();
+  const roundCount = await quadraticFunding.getGrantRoundCount();
   if (roundCount) {
     const roundIndex = roundCount - 1;
-    const response = await openGrant.getGrantRoundInfo(roundIndex);
+    const response = await quadraticFunding.getGrantRoundInfo(roundIndex);
     const start = Number(response.toHuman().start.replace(',', ''));
     const end = Number(response.toHuman().end.replace(',', ''));
 
     if (currentBlockNumber >= start - confirmBlocks && currentBlockNumber < end) {
       // If the round is start but not ended
       // Why start - confirmBlocks? Because cancel round need send a extrinsic and wait for some blocks to finalized
-      await openGrant.waitForBlockNumber(end);
+      await quadraticFunding.waitForBlockNumber(end);
     } else if (currentBlockNumber < start - confirmBlocks) {
       // If round is not start, cancel this round
-      await cancelRound(openGrant, { roundIndex });
+      await cancelRound(quadraticFunding, { roundIndex });
     }
   }
 };
 
 // Fund before run the test cases
-const preFund = async (openGrant) => {
-  await fund(openGrant, { fundBalance: fundAmount });
+const preFund = async (quadraticFunding) => {
+  await fund(quadraticFunding, { fundBalance: fundAmount });
 };
 
 module.exports = {

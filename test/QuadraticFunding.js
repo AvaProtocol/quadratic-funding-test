@@ -7,7 +7,7 @@ const _ = require('lodash');
 const config = require('./config');
 const ExtrinsicsTypes = require('./extrinsicsTypes');
 
-class OpenGrant {
+class QuadraticFunding {
   constructor() {
     this.api = '';
     this.sudoOrigin = '';
@@ -52,9 +52,9 @@ class OpenGrant {
   // Storage Module
 
   /**
-   * Read the OpenGrant's storage data
-   * @param {*} method OpenGrant's method name
-   * @param  {...any} args OpenGrant's method's params
+   * Read the QuadraticFunding's storage data
+   * @param {*} method QuadraticFunding's method name
+   * @param  {...any} args QuadraticFunding's method's params
    */
   readStorage(method, ...args) {
     return this.api.query.quadraticFunding[method](...args);
@@ -126,7 +126,7 @@ class OpenGrant {
       const unsub = await extrinsic.signAndSend(origin, async ({ events = [], status }) => {
         if (status.isFinalized) {
           unsub();
-          const { response, error, success } = OpenGrant.getMethodResponseFromEvents(events, event);
+          const { response, error, success } = QuadraticFunding.getMethodResponseFromEvents(events, event);
           if (!_.isEmpty(error)) {
             reject(error);
           } else if (!_.isEmpty(response) || success) {
@@ -147,27 +147,27 @@ class OpenGrant {
   // Extrinsics module
 
   /**
-   * Create OpenGrant's extrinsic instance
-   * @param {*} method OpenGrant's method name
-   * @param  {...any} args OpenGrant's method's params
+   * Create QuadraticFunding's extrinsic instance
+   * @param {*} method QuadraticFunding's method name
+   * @param  {...any} args QuadraticFunding's method's params
    */
-  createOpenGrantExtrinsic(method, ...args) {
+  createQuadraticFundingExtrinsic(method, ...args) {
     return this.api.tx.quadraticFunding[method](...args);
   }
 
   /**
-   * Create OpenGrant's extrinsic instance by sudo module
-   * @param {*} method OpenGrant's method name
-   * @param  {...any} args OpenGrant's method's params
+   * Create QuadraticFunding's extrinsic instance by sudo module
+   * @param {*} method QuadraticFunding's method name
+   * @param  {...any} args QuadraticFunding's method's params
    * @returns
    */
-  async createOpenGrantExtrinsicBySudo(method, ...args) {
-    const call = await this.createOpenGrantExtrinsic(method, ...args);
+  async createQuadraticFundingExtrinsicBySudo(method, ...args) {
+    const call = await this.createQuadraticFundingExtrinsic(method, ...args);
     return this.api.tx.sudo.sudo(call);
   }
 
   /**
-   * Create OpenGrant.createProject extrinsic instance.
+   * Create QuadraticFunding.createProject extrinsic instance.
    *
    * Description:
    * Someone can create project
@@ -182,11 +182,11 @@ class OpenGrant {
   createProject({
     name, logo, description, website,
   }) {
-    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.createProject.method, name, logo, description, website);
+    return this.createQuadraticFundingExtrinsic(ExtrinsicsTypes.createProject.method, name, logo, description, website);
   }
 
   /**
-   * Create OpenGrant.fund extrinsic instance.
+   * Create QuadraticFunding.fund extrinsic instance.
    *
    * Description:
    * Transfer fund to fund pool
@@ -198,11 +198,11 @@ class OpenGrant {
   fund({
     fundBalance,
   }) {
-    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.fund.method, fundBalance);
+    return this.createQuadraticFundingExtrinsic(ExtrinsicsTypes.fund.method, fundBalance);
   }
 
   /**
-   * Create OpenGrant.scheduleRound extrinsic instance
+   * Create QuadraticFunding.scheduleRound extrinsic instance
    *
    * Description:
    * The committee can schedule the next round
@@ -217,11 +217,11 @@ class OpenGrant {
   scheduleRound({
     start, end, matchingFund, projectIndexes,
   }) {
-    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.scheduleRound.method, start, end, matchingFund, projectIndexes);
+    return this.createQuadraticFundingExtrinsicBySudo(ExtrinsicsTypes.scheduleRound.method, start, end, matchingFund, projectIndexes);
   }
 
   /**
-   * Create OpenGrant.contribute extrinsic instance
+   * Create QuadraticFunding.contribute extrinsic instance
    *
    * Description:
    * User can contribute the project in this active round
@@ -234,11 +234,11 @@ class OpenGrant {
   contribute({
     value, projectIndex,
   }) {
-    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.contribute.method, projectIndex, value);
+    return this.createQuadraticFundingExtrinsic(ExtrinsicsTypes.contribute.method, projectIndex, value);
   }
 
   /**
-   * Create OpenGrant.finalizeRound extrinsic instance
+   * Create QuadraticFunding.finalizeRound extrinsic instance
    *
    * Description:
    * When the project is allowed withdraw, the project owner can withdraw the project fund
@@ -250,11 +250,11 @@ class OpenGrant {
   finalizeRound({
     roundIndex,
   }) {
-    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.finalizeRound.method, roundIndex);
+    return this.createQuadraticFundingExtrinsicBySudo(ExtrinsicsTypes.finalizeRound.method, roundIndex);
   }
 
   /**
-   * Create OpenGrant.withdraw extrinsic instance
+   * Create QuadraticFunding.withdraw extrinsic instance
    *
    * Description:
    * When the project is allowed withdraw, the project owner can withdraw the project fund
@@ -267,11 +267,11 @@ class OpenGrant {
   withdraw({
     roundIndex, projectIndex,
   }) {
-    return this.createOpenGrantExtrinsic(ExtrinsicsTypes.withdraw.method, roundIndex, projectIndex);
+    return this.createQuadraticFundingExtrinsic(ExtrinsicsTypes.withdraw.method, roundIndex, projectIndex);
   }
 
   /**
-   * Create OpenGrant.approve extrinsic instance
+   * Create QuadraticFunding.approve extrinsic instance
    *
    * Description:
    * Approve the project owner to withdraw the amount
@@ -284,11 +284,11 @@ class OpenGrant {
   approve({
     roundIndex, projectIndex,
   }) {
-    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.approve.method, roundIndex, projectIndex);
+    return this.createQuadraticFundingExtrinsicBySudo(ExtrinsicsTypes.approve.method, roundIndex, projectIndex);
   }
 
   /**
-   * Create OpenGrant.cancelRound extrinsic instance
+   * Create QuadraticFunding.cancelRound extrinsic instance
    *
    * Description:
    * The committee can cancel the next schedule round
@@ -298,11 +298,11 @@ class OpenGrant {
    *
    */
   cancelRound({ roundIndex }) {
-    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.cancelRound.method, roundIndex);
+    return this.createQuadraticFundingExtrinsicBySudo(ExtrinsicsTypes.cancelRound.method, roundIndex);
   }
 
   /**
-   * Create OpenGrant.cancel extrinsic instance
+   * Create QuadraticFunding.cancel extrinsic instance
    *
    * Description:
    * The committee can cancel a specific project in this active round.
@@ -314,15 +314,15 @@ class OpenGrant {
    *
    */
   cancel({ roundIndex, projectIndex }) {
-    return this.createOpenGrantExtrinsicBySudo(ExtrinsicsTypes.cancel.method, roundIndex, projectIndex);
+    return this.createQuadraticFundingExtrinsicBySudo(ExtrinsicsTypes.cancel.method, roundIndex, projectIndex);
   }
 
   // Utils module
 
   /**
-   * Filter OpenGrant's extrinsic's events with query method name, and return the response or error
+   * Filter QuadraticFunding's extrinsic's events with query method name, and return the response or error
    *
-   * @param {*} events OpenGrant's extrinsic's events
+   * @param {*} events QuadraticFunding's extrinsic's events
    * @param {*} queryMethod Filter method name
    *
    */
@@ -349,4 +349,4 @@ class OpenGrant {
   }
 }
 
-module.exports = OpenGrant;
+module.exports = QuadraticFunding;

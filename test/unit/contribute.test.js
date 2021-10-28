@@ -2,7 +2,7 @@
 const { assert } = require('chai');
 const _ = require('lodash');
 
-const OpenGrant = require('../OpenGrant');
+const QuadraticFunding = require('../QuadraticFunding');
 const {
   matchingFund, roundDuration, value,
 } = require('../constant');
@@ -10,31 +10,31 @@ const {
   createProject, scheduleRound, contribute, cleanRound, preFund,
 } = require('../utils');
 
-const shouldPass = async (openGrant, params) => {
-  const { error, info } = await contribute(openGrant, params);
+const shouldPass = async (quadraticFunding, params) => {
+  const { error, info } = await contribute(quadraticFunding, params);
   assert.strictEqual(error, null, 'Contribute should not catch an error');
   assert.strictEqual(_.isMatch(info, params), true, 'Contribute info should contain the params');
 };
 
-const shouldFail = async (openGrant, params) => {
-  const { error, info } = await contribute(openGrant, params);
+const shouldFail = async (quadraticFunding, params) => {
+  const { error, info } = await contribute(quadraticFunding, params);
   assert.notEqual(error, null, 'Contribute should catch an error');
   assert.strictEqual(_.isEmpty(info), true, 'Contribute info should be empty');
 };
 
 describe('Unit Test - contribute', async () => {
-  const openGrant = new OpenGrant();
+  const quadraticFunding = new QuadraticFunding();
   let projectIndex = null;
 
   before(async () => {
-    await openGrant.init();
+    await quadraticFunding.init();
 
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
 
-    await preFund(openGrant);
+    await preFund(quadraticFunding);
 
     // Need create project first before schedule round
-    const { index, error } = await createProject(openGrant, {
+    const { index, error } = await createProject(quadraticFunding, {
       name: 'name',
       logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
       description: 'description',
@@ -43,9 +43,9 @@ describe('Unit Test - contribute', async () => {
     assert.strictEqual(error, null);
     projectIndex = index;
 
-    const currentBlockNumber = await openGrant.getCurrentBlockNumber();
+    const currentBlockNumber = await quadraticFunding.getCurrentBlockNumber();
     const startBlockNumber = currentBlockNumber + 10;
-    const response = await scheduleRound(openGrant, {
+    const response = await scheduleRound(quadraticFunding, {
       start: startBlockNumber,
       end: startBlockNumber + roundDuration * 2, // Double roundDuration ensure run all input cases in this round
       matchingFund,
@@ -54,11 +54,11 @@ describe('Unit Test - contribute', async () => {
     assert.strictEqual(response.error, null);
 
     // Wait for this round start
-    await openGrant.waitForBlockNumber(startBlockNumber);
+    await quadraticFunding.waitForBlockNumber(startBlockNumber);
   });
 
   after(async () => {
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
   });
 
   it('Input with correct params should pass', async () => {
@@ -67,7 +67,7 @@ describe('Unit Test - contribute', async () => {
       value,
     };
 
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Input value as 0 should fail', async () => {
@@ -76,7 +76,7 @@ describe('Unit Test - contribute', async () => {
       value: 0,
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input value < 0 should fail', async () => {
@@ -85,7 +85,7 @@ describe('Unit Test - contribute', async () => {
       value: -100,
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input projectIndex as invalid array index should fail', async () => {
@@ -94,7 +94,7 @@ describe('Unit Test - contribute', async () => {
       value,
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input projectIndex as a not exsit project index should fail', async () => {
@@ -103,6 +103,6 @@ describe('Unit Test - contribute', async () => {
       value,
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 });

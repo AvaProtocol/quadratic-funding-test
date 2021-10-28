@@ -1,7 +1,7 @@
 /* eslint-disable no-async-promise-executor */
 const { assert } = require('chai');
 
-const OpenGrant = require('../OpenGrant');
+const QuadraticFunding = require('../QuadraticFunding');
 const {
   matchingFund, roundDuration, value,
 } = require('../constant');
@@ -9,30 +9,30 @@ const {
   createProject, scheduleRound, cleanRound, contribute, finalizeRound, preFund,
 } = require('../utils');
 
-const shouldPass = async (openGrant, params) => {
-  const { error, response } = await finalizeRound(openGrant, params);
+const shouldPass = async (quadraticFunding, params) => {
+  const { error, response } = await finalizeRound(quadraticFunding, params);
   assert.strictEqual(error, null, 'finalizeRound should not catch an error');
   assert.strictEqual(response, true, 'finalizeRound response should be true');
 };
 
-const shouldFail = async (openGrant, params) => {
-  const { error } = await finalizeRound(openGrant, params);
+const shouldFail = async (quadraticFunding, params) => {
+  const { error } = await finalizeRound(quadraticFunding, params);
   assert.notEqual(error, null, 'approve should catch an error');
 };
 
 describe('Unit Test - finalizeRound', async () => {
-  const openGrant = new OpenGrant();
+  const quadraticFunding = new QuadraticFunding();
   let projectIndex = null;
   let roundIndex = null;
 
   before(async () => {
-    await openGrant.init();
+    await quadraticFunding.init();
 
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
 
-    await preFund(openGrant);
+    await preFund(quadraticFunding);
 
-    const { index, error } = await createProject(openGrant, {
+    const { index, error } = await createProject(quadraticFunding, {
       name: 'name',
       logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
       description: 'description',
@@ -41,10 +41,10 @@ describe('Unit Test - finalizeRound', async () => {
     assert.strictEqual(error, null);
     projectIndex = index;
 
-    const currentBlockNumber = await openGrant.getCurrentBlockNumber();
+    const currentBlockNumber = await quadraticFunding.getCurrentBlockNumber();
     const startBlockNumber = currentBlockNumber + 10;
     const endBlockNumber = currentBlockNumber + roundDuration;
-    let response = await scheduleRound(openGrant, {
+    let response = await scheduleRound(quadraticFunding, {
       start: startBlockNumber,
       end: endBlockNumber,
       matchingFund,
@@ -54,20 +54,20 @@ describe('Unit Test - finalizeRound', async () => {
     roundIndex = response.index;
 
     // Wait for this round start
-    await openGrant.waitForBlockNumber(startBlockNumber);
+    await quadraticFunding.waitForBlockNumber(startBlockNumber);
 
-    response = await contribute(openGrant, {
+    response = await contribute(quadraticFunding, {
       projectIndex,
       value,
     });
     assert.strictEqual(response.error, null);
 
     // Wait for this round end
-    await openGrant.waitForBlockNumber(endBlockNumber);
+    await quadraticFunding.waitForBlockNumber(endBlockNumber);
   });
 
   after(async () => {
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
   });
 
   it('Input roundIndex as invalid array index should fail', async () => {
@@ -75,7 +75,7 @@ describe('Unit Test - finalizeRound', async () => {
       roundIndex: -1,
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input with correct params should pass', async () => {
@@ -83,6 +83,6 @@ describe('Unit Test - finalizeRound', async () => {
       roundIndex,
     };
 
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 });

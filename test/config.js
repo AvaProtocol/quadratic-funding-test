@@ -33,6 +33,7 @@ module.exports = {
       description: 'Vec<u8>',
       website: 'Vec<u8>',
       owner: 'AccountId',
+      create_block_numbe: 'BlockNumber',
     },
   },
   rpc: {

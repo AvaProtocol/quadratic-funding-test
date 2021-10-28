@@ -3,26 +3,26 @@
 const { assert } = require('chai');
 const _ = require('lodash');
 
-const OpenGrant = require('../OpenGrant');
+const QuadraticFunding = require('../QuadraticFunding');
 const { matchingFund, roundDuration } = require('../constant');
 const {
   createProject, scheduleRound, cleanRound, approve, withdraw, cancel, preFund, finalizeRound,
 } = require('../utils');
 
-const shouldPass = async (openGrant, params) => {
-  const { error, info } = await withdraw(openGrant, params);
+const shouldPass = async (quadraticFunding, params) => {
+  const { error, info } = await withdraw(quadraticFunding, params);
   assert.strictEqual(error, null, 'Withdraw should not catch an error');
   assert.strictEqual(_.isMatch(info, params), true, 'Withdraw info should contain the params');
 };
 
-const shouldFail = async (openGrant, params) => {
-  const { error, info } = await withdraw(openGrant, params);
+const shouldFail = async (quadraticFunding, params) => {
+  const { error, info } = await withdraw(quadraticFunding, params);
   assert.notEqual(error, null, 'Withdraw should catch an error');
   assert.strictEqual(_.isEmpty(info), true, 'Withdraw info should be empty');
 };
 
 describe('Functional Test - withdraw', async () => {
-  const openGrant = new OpenGrant();
+  const quadraticFunding = new QuadraticFunding();
   const projectsCount = 3;
   const projectIndexes = [];
   let roundIndex = null;
@@ -30,15 +30,15 @@ describe('Functional Test - withdraw', async () => {
   let endBlockNumber = null;
 
   before(async () => {
-    await openGrant.init();
+    await quadraticFunding.init();
 
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
 
-    await preFund(openGrant);
+    await preFund(quadraticFunding);
 
     // Need create some new projects first
     for (let idx = 0; idx < projectsCount; idx += 1) {
-      const { index, error } = await createProject(openGrant, {
+      const { index, error } = await createProject(quadraticFunding, {
         name: 'name',
         logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
         description: 'description',
@@ -49,10 +49,10 @@ describe('Functional Test - withdraw', async () => {
     }
 
     // Schedule a new round
-    const currentBlockNumber = await openGrant.getCurrentBlockNumber();
+    const currentBlockNumber = await quadraticFunding.getCurrentBlockNumber();
     startBlockNumber = currentBlockNumber + 20;
     endBlockNumber = startBlockNumber + roundDuration * 2;
-    const response = await scheduleRound(openGrant, {
+    const response = await scheduleRound(quadraticFunding, {
       start: startBlockNumber,
       end: endBlockNumber,
       matchingFund,
@@ -63,7 +63,7 @@ describe('Functional Test - withdraw', async () => {
   });
 
   after(async () => {
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
   });
 
   it('Logic with withdraw a project but round is not start should fail', async () => {
@@ -72,34 +72,34 @@ describe('Functional Test - withdraw', async () => {
       projectIndex: projectIndexes[0],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Logic with withdraw a project but round is active should fail', async () => {
     // Wait for this round start
-    await openGrant.waitForBlockNumber(startBlockNumber);
+    await quadraticFunding.waitForBlockNumber(startBlockNumber);
 
     const params = {
       roundIndex,
       projectIndex: projectIndexes[0],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Logic with withdraw a project but not in this round should fail', async () => {
     // Wait for this round end
-    await openGrant.waitForBlockNumber(endBlockNumber);
+    await quadraticFunding.waitForBlockNumber(endBlockNumber);
 
     // Wait for this round finalized
-    await finalizeRound(openGrant, { roundIndex });
+    await finalizeRound(quadraticFunding, { roundIndex });
 
     const params = {
       roundIndex,
       projectIndex: projectIndexes[2],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Logic with withdraw a project but project is not allowed withdraw should fail', async () => {
@@ -108,7 +108,7 @@ describe('Functional Test - withdraw', async () => {
       projectIndex: projectIndexes[0],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Logic with withdraw a project but project is canceled should fail', async () => {
@@ -117,9 +117,9 @@ describe('Functional Test - withdraw', async () => {
       projectIndex: projectIndexes[0],
     };
 
-    await cancel(openGrant, params);
+    await cancel(quadraticFunding, params);
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Logic with withdraw an allowed withdraw project should pass', async () => {
@@ -128,9 +128,9 @@ describe('Functional Test - withdraw', async () => {
       projectIndex: projectIndexes[1],
     };
 
-    await approve(openGrant, params);
+    await approve(quadraticFunding, params);
 
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Logic with withdraw a withdrawn project should fail', async () => {
@@ -139,6 +139,6 @@ describe('Functional Test - withdraw', async () => {
       projectIndex: projectIndexes[1],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 });
