@@ -3,36 +3,36 @@
 const { assert } = require('chai');
 const _ = require('lodash');
 
-const OpenGrant = require('../OpenGrant');
+const QuadraticFunding = require('../QuadraticFunding');
 const { matchingFund, roundDuration } = require('../constant');
 const {
   createProject, scheduleRound, cleanRound, preFund,
 } = require('../utils');
 
-const shouldPass = async (openGrant, params) => {
-  const previousRoundCount = await openGrant.getGrantRoundCount();
+const shouldPass = async (quadraticFunding, params) => {
+  const previousRoundCount = await quadraticFunding.getGrantRoundCount();
 
-  const { error, info } = await scheduleRound(openGrant, params);
+  const { error, info } = await scheduleRound(quadraticFunding, params);
   assert.strictEqual(error, null, 'Schedule round should not catch an error');
   assert.strictEqual(_.isEmpty(info), false, 'Round info should not be empty');
 
-  const roundCount = await openGrant.getGrantRoundCount();
+  const roundCount = await quadraticFunding.getGrantRoundCount();
   assert.strictEqual(roundCount, previousRoundCount + 1, 'After pass case, grant round count should increase 1');
 };
 
-const shouldFail = async (openGrant, params) => {
-  const previousRoundCount = await openGrant.getGrantRoundCount();
+const shouldFail = async (quadraticFunding, params) => {
+  const previousRoundCount = await quadraticFunding.getGrantRoundCount();
 
-  const { error, info } = await scheduleRound(openGrant, params);
+  const { error, info } = await scheduleRound(quadraticFunding, params);
   assert.notEqual(error, null, 'Schedule round should catch an error');
   assert.strictEqual(_.isEmpty(info), true, 'Round info should be empty');
 
-  const roundCount = await openGrant.getGrantRoundCount();
+  const roundCount = await quadraticFunding.getGrantRoundCount();
   assert.strictEqual(roundCount, previousRoundCount, 'After fail case, grant round count should not change');
 };
 
 describe('Unit Test - schedule_round', async () => {
-  const openGrant = new OpenGrant();
+  const quadraticFunding = new QuadraticFunding();
   let projectIndex = null;
   let currentBlockNumber = null;
   let startBlockNumber = null;
@@ -40,12 +40,12 @@ describe('Unit Test - schedule_round', async () => {
   let maxGrantCountPerRound = 0;
 
   before(async () => {
-    await openGrant.init();
+    await quadraticFunding.init();
 
-    await preFund(openGrant);
+    await preFund(quadraticFunding);
 
     // Need create project first before schedule round
-    const { index, error } = await createProject(openGrant, {
+    const { index, error } = await createProject(quadraticFunding, {
       name: 'name',
       logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
       description: 'description',
@@ -54,17 +54,17 @@ describe('Unit Test - schedule_round', async () => {
     assert.strictEqual(error, null);
     projectIndex = index;
 
-    maxGrantCountPerRound = await openGrant.getMaxGrantCountPerRound();
+    maxGrantCountPerRound = await quadraticFunding.getMaxGrantCountPerRound();
   });
 
   beforeEach(async () => {
-    await cleanRound(openGrant);
-    currentBlockNumber = await openGrant.getCurrentBlockNumber();
+    await cleanRound(quadraticFunding);
+    currentBlockNumber = await quadraticFunding.getCurrentBlockNumber();
     startBlockNumber = currentBlockNumber + 1000;
   });
 
   afterEach(async () => {
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
   });
 
   it('Input with correct params should pass', async () => {
@@ -75,7 +75,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes: [projectIndex],
     };
 
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Input matchingFund as 0 should pass', async () => {
@@ -86,7 +86,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes: [projectIndex],
     };
 
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Input start > end should fail', async () => {
@@ -97,7 +97,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes: [projectIndex],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input as < 0 should fail', async () => {
@@ -108,7 +108,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes: [projectIndex],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input start/end as 0 should fail', async () => {
@@ -119,7 +119,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes: [projectIndex],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input start/end < currentBlockNumber shoud fail', async () => {
@@ -130,7 +130,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes: [projectIndex],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input projectIndexes contains invalid array index should fail', async () => {
@@ -141,7 +141,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes: [-1, projectIndex],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input projectIndexes contains not exsit project index should fail', async () => {
@@ -152,7 +152,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes: [projectIndex + 10],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input projectIndexes as empty should fail', async () => {
@@ -163,13 +163,13 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes: [],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Error case with the length of projects > per round max projects length', async () => {
     const projectIndexes = [projectIndex];
     for (let i = 0; i < maxGrantCountPerRound; i += 1) {
-      const { index, error } = await createProject(openGrant, {
+      const { index, error } = await createProject(quadraticFunding, {
         name: 'name',
         logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
         description: 'description',
@@ -185,7 +185,7 @@ describe('Unit Test - schedule_round', async () => {
       projectIndexes,
     };
 
-    const { error } = await scheduleRound(openGrant, params);
+    const { error } = await scheduleRound(quadraticFunding, params);
     assert.notEqual(error, null);
   });
 });

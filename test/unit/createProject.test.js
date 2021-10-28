@@ -1,27 +1,27 @@
 const { assert } = require('chai');
 const _ = require('lodash');
 
-const OpenGrant = require('../OpenGrant');
+const QuadraticFunding = require('../QuadraticFunding');
 const { createProject, preFund } = require('../utils');
 
-const shouldPass = async (openGrant, params) => {
-  const { error, info } = await createProject(openGrant, params);
+const shouldPass = async (quadraticFunding, params) => {
+  const { error, info } = await createProject(quadraticFunding, params);
   assert.strictEqual(error, null, 'Should not catch an error');
   assert.strictEqual(_.isMatch(info, params), true, 'Project info should contain the params');
 };
 
-const shouldFail = async (openGrant, params) => {
-  const { error, info } = await createProject(openGrant, params);
+const shouldFail = async (quadraticFunding, params) => {
+  const { error, info } = await createProject(quadraticFunding, params);
   assert.notEqual(error, null, 'Should catch an error');
   assert.strictEqual(_.isEmpty(info), true, 'Project info should be empty');
 };
 
 describe('Unit Test - create_project', async () => {
-  const openGrant = new OpenGrant();
+  const quadraticFunding = new QuadraticFunding();
   before(async () => {
-    await openGrant.init();
+    await quadraticFunding.init();
 
-    await preFund(openGrant);
+    await preFund(quadraticFunding);
   });
 
   it('Input with non-empty string should pass', async () => {
@@ -31,7 +31,7 @@ describe('Unit Test - create_project', async () => {
       description: 'description',
       website: 'https://oak.tech/',
     };
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Input with specific symbols should pass', async () => {
@@ -41,7 +41,7 @@ describe('Unit Test - create_project', async () => {
       description: '\\_?*&^%$#@~!description',
       website: '\\_?*&^%$#@~!https://oak.tech/',
     };
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Input as empty string should fail', async () => {
@@ -51,6 +51,6 @@ describe('Unit Test - create_project', async () => {
       description: '',
       website: '',
     };
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 });

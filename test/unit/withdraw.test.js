@@ -3,7 +3,7 @@
 const { assert } = require('chai');
 const _ = require('lodash');
 
-const OpenGrant = require('../OpenGrant');
+const QuadraticFunding = require('../QuadraticFunding');
 const {
   matchingFund, roundDuration, value,
 } = require('../constant');
@@ -11,34 +11,34 @@ const {
   createProject, scheduleRound, cleanRound, approve, contribute, withdraw, finalizeRound, preFund,
 } = require('../utils');
 
-const shouldPass = async (openGrant, params) => {
-  const { error, info } = await withdraw(openGrant, params);
+const shouldPass = async (quadraticFunding, params) => {
+  const { error, info } = await withdraw(quadraticFunding, params);
   assert.strictEqual(error, null, 'Withdraw should not catch an error');
   assert.strictEqual(_.isMatch(info, params), true, 'Withdraw info should contain the params');
 };
 
-const shouldFail = async (openGrant, params) => {
-  const { error, info } = await withdraw(openGrant, params);
+const shouldFail = async (quadraticFunding, params) => {
+  const { error, info } = await withdraw(quadraticFunding, params);
   assert.notEqual(error, null, 'Withdraw should catch an error');
   assert.strictEqual(_.isEmpty(info), true, 'Withdraw info should be empty');
 };
 
 describe('Unit Test - withdraw', async () => {
-  const openGrant = new OpenGrant();
+  const quadraticFunding = new QuadraticFunding();
   const projectsCount = 2;
   const projectIndexes = [];
   let roundIndex = null;
 
   before(async () => {
-    await openGrant.init();
+    await quadraticFunding.init();
 
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
 
-    await preFund(openGrant);
+    await preFund(quadraticFunding);
 
     // Need create some new projects first
     for (let idx = 0; idx < projectsCount; idx += 1) {
-      const { index, error } = await createProject(openGrant, {
+      const { index, error } = await createProject(quadraticFunding, {
         name: 'name',
         logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
         description: 'description',
@@ -48,10 +48,10 @@ describe('Unit Test - withdraw', async () => {
       projectIndexes.push(index);
     }
 
-    const currentBlockNumber = await openGrant.getCurrentBlockNumber();
+    const currentBlockNumber = await quadraticFunding.getCurrentBlockNumber();
     const startBlockNumber = currentBlockNumber + 10;
     const endBlockNumber = currentBlockNumber + roundDuration;
-    let response = await scheduleRound(openGrant, {
+    let response = await scheduleRound(quadraticFunding, {
       start: startBlockNumber,
       end: endBlockNumber,
       matchingFund,
@@ -61,11 +61,11 @@ describe('Unit Test - withdraw', async () => {
     roundIndex = response.index;
 
     // Wait for this round start
-    await openGrant.waitForBlockNumber(startBlockNumber);
+    await quadraticFunding.waitForBlockNumber(startBlockNumber);
 
     // Contribute to all projects
     for (let idx = 0; idx < projectsCount; idx += 1) {
-      response = await contribute(openGrant, {
+      response = await contribute(quadraticFunding, {
         projectIndex: projectIndexes[idx],
         value,
       });
@@ -73,17 +73,17 @@ describe('Unit Test - withdraw', async () => {
     }
 
     // Wait for this round end
-    await openGrant.waitForBlockNumber(endBlockNumber);
+    await quadraticFunding.waitForBlockNumber(endBlockNumber);
 
     // Finalize all round
-    response = await finalizeRound(openGrant, {
+    response = await finalizeRound(quadraticFunding, {
       roundIndex,
     });
     assert.strictEqual(response.response, true);
 
     // Approve all projects to withdraw
     for (let idx = 0; idx < projectsCount; idx += 1) {
-      response = await approve(openGrant, {
+      response = await approve(quadraticFunding, {
         roundIndex,
         projectIndex: projectIndexes[idx],
       });
@@ -92,7 +92,7 @@ describe('Unit Test - withdraw', async () => {
   });
 
   after(async () => {
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
   });
 
   it('Input with correct params should pass', async () => {
@@ -101,7 +101,7 @@ describe('Unit Test - withdraw', async () => {
       projectIndex: projectIndexes[0],
     };
 
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Input roundIndex as invalid array index should fail', async () => {
@@ -110,7 +110,7 @@ describe('Unit Test - withdraw', async () => {
       projectIndex: projectIndexes[1],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input roundIndex as a not exsit round index should fail', async () => {
@@ -119,7 +119,7 @@ describe('Unit Test - withdraw', async () => {
       projectIndex: projectIndexes[1],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input projectIndex as invalid array index should fail', async () => {
@@ -128,7 +128,7 @@ describe('Unit Test - withdraw', async () => {
       projectIndex: -1,
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Input projectIndex as a not exsit project index should fail', async () => {
@@ -137,6 +137,6 @@ describe('Unit Test - withdraw', async () => {
       projectIndex: projectIndexes[1] + 10,
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 });

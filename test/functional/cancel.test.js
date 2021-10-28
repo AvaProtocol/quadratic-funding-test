@@ -3,26 +3,26 @@
 const { assert } = require('chai');
 const _ = require('lodash');
 
-const OpenGrant = require('../OpenGrant');
+const QuadraticFunding = require('../QuadraticFunding');
 const { roundDuration } = require('../constant');
 const {
   createProject, scheduleRound, cleanRound, approve, cancel, finalizeRound, preFund,
 } = require('../utils');
 
-const shouldPass = async (openGrant, params) => {
-  const { error, info } = await cancel(openGrant, params);
+const shouldPass = async (quadraticFunding, params) => {
+  const { error, info } = await cancel(quadraticFunding, params);
   assert.strictEqual(error, null, 'cancel should not catch an error');
   assert.strictEqual(_.isMatch(info, params), true, 'cancel info should contain the params');
 };
 
-const shouldFail = async (openGrant, params) => {
-  const { error, info } = await cancel(openGrant, params);
+const shouldFail = async (quadraticFunding, params) => {
+  const { error, info } = await cancel(quadraticFunding, params);
   assert.notEqual(error, null, 'cancel should catch an error');
   assert.strictEqual(_.isEmpty(info), true, 'cancel info should be empty');
 };
 
 describe('Functional Test - cancel', async () => {
-  const openGrant = new OpenGrant();
+  const quadraticFunding = new QuadraticFunding();
   const projectsCount = 5;
   const projectIndexes = [];
   let roundIndex = null;
@@ -30,15 +30,15 @@ describe('Functional Test - cancel', async () => {
   let endBlockNumber = null;
 
   before(async () => {
-    await openGrant.init();
+    await quadraticFunding.init();
 
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
 
-    await preFund(openGrant);
+    await preFund(quadraticFunding);
 
     // Need create some new projects first
     for (let idx = 0; idx < projectsCount; idx += 1) {
-      const { index, error } = await createProject(openGrant, {
+      const { index, error } = await createProject(quadraticFunding, {
         name: 'name',
         logo: 'https://oak.tech/_next/static/images/logo-e546db00eb163fae7f0c56424c3a2586.png',
         description: 'description',
@@ -49,10 +49,10 @@ describe('Functional Test - cancel', async () => {
     }
 
     // Schedule a new round
-    const currentBlockNumber = await openGrant.getCurrentBlockNumber();
+    const currentBlockNumber = await quadraticFunding.getCurrentBlockNumber();
     startBlockNumber = currentBlockNumber + 20;
     endBlockNumber = startBlockNumber + roundDuration;
-    const response = await scheduleRound(openGrant, {
+    const response = await scheduleRound(quadraticFunding, {
       start: startBlockNumber,
       end: endBlockNumber, // Double roundDuration ensure run all input cases in this round
       matchingFund: 0,
@@ -63,7 +63,7 @@ describe('Functional Test - cancel', async () => {
   });
 
   after(async () => {
-    await cleanRound(openGrant);
+    await cleanRound(quadraticFunding);
   });
 
   it('Logic with cancel a project but this round is not start should pass', async () => {
@@ -72,19 +72,19 @@ describe('Functional Test - cancel', async () => {
       projectIndex: projectIndexes[0],
     };
 
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Logic with cancel a project but this round is active should pass', async () => {
     // Wait for this round start
-    await openGrant.waitForBlockNumber(startBlockNumber);
+    await quadraticFunding.waitForBlockNumber(startBlockNumber);
 
     const params = {
       roundIndex,
       projectIndex: projectIndexes[1],
     };
 
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Logic with cancel a canceled project should fail', async () => {
@@ -93,43 +93,43 @@ describe('Functional Test - cancel', async () => {
       projectIndex: projectIndexes[1],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Logic with cancel a project in ended round should pass', async () => {
     // Wait for this round end
-    await openGrant.waitForBlockNumber(endBlockNumber);
+    await quadraticFunding.waitForBlockNumber(endBlockNumber);
 
     const params = {
       roundIndex,
       projectIndex: projectIndexes[2],
     };
 
-    await shouldPass(openGrant, params);
+    await shouldPass(quadraticFunding, params);
   });
 
   it('Logic with cancel a project in finalized round should fail', async () => {
     // Wait for this round finalize
-    await finalizeRound(openGrant, { roundIndex });
+    await finalizeRound(quadraticFunding, { roundIndex });
 
     const params = {
       roundIndex,
       projectIndex: projectIndexes[3],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Logic with cancel an approved project round should fail', async () => {
     // Wait for project approved
-    await approve(openGrant, { roundIndex, projectIndex: projectIndexes[3] });
+    await approve(quadraticFunding, { roundIndex, projectIndex: projectIndexes[3] });
 
     const params = {
       roundIndex,
       projectIndex: projectIndexes[3],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 
   it('Logic with cancel a project but not in this round should fail', async () => {
@@ -138,6 +138,6 @@ describe('Functional Test - cancel', async () => {
       projectIndex: projectIndexes[4],
     };
 
-    await shouldFail(openGrant, params);
+    await shouldFail(quadraticFunding, params);
   });
 });
