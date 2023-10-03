@@ -1340,8 +1340,8 @@ next-tick@~1.0.0:
   resolved "https://registry.npm.taobao.org/next-tick/download/next-tick-1.0.0.tgz"
 
 node-fetch@^2.6.5:
-  version "2.6.5"
-  resolved "https://registry.npmmirror.com/node-fetch/download/node-fetch-2.6.5.tgz?cache=0&sync_timestamp=1632315341038&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fnode-fetch%2Fdownload%2Fnode-fetch-2.6.5.tgz"
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.7.0.tgz#d0f0fa6e3e2dc1d27efcd8ad99d550bda94d187d"
   dependencies:
     whatwg-url "^5.0.0"
 
