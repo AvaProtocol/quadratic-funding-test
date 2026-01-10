@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@polkadot/api": "^6.4.2",
-    "@polkadot/util-crypto": "^7.5.1",
+    "@polkadot/util-crypto": "^14.0.1",
     "bignumber.js": "^9.0.1",
     "chai": "^4.3.4",
     "lodash": "^4.17.21",
