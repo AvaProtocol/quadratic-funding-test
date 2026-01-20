@@ -590,8 +590,8 @@ delayed-stream@~1.0.0:
   resolved "https://registry.nlark.com/delayed-stream/download/delayed-stream-1.0.0.tgz"
 
 diff@^5.2.0:
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/diff/-/diff-5.2.0.tgz#26ded047cd1179b78b9537d5ef725503ce1ae531"
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/diff/-/diff-5.2.2.tgz#0a4742797281d09cfa699b79ea32d27723623bad"
 
 doctrine@1.5.0:
   version "1.5.0"
